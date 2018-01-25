@@ -65,7 +65,9 @@ class SimpleMoveManager(val host: SimpleHost, val animationManager: AnimationMan
 
     override fun onScroll(e1: MotionEvent, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
         scrolling = true
+        info { "onScroll Beg" }
         host.moveOffset(distanceX, distanceY)
+        info { "onScroll End" }
         return true
     }
 

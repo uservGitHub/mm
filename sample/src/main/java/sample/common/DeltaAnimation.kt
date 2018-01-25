@@ -6,13 +6,17 @@ import android.animation.ValueAnimator
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.OverScroller
+import org.jetbrains.anko.AnkoLogger
+import org.jetbrains.anko.info
 
 /**
  * Created by work on 2018/1/24.
  */
 class DeltaAnimation(val host:View,
                      val moveOffset:(deltaX:Float,deltaY:Float)->Unit,
-                     val moveTo:(x:Int, y:Int)->Unit){
+                     val moveTo:(x:Int, y:Int)->Unit):AnkoLogger{
+    override val loggerTag: String
+        get() = "_SiMMr"
     private var animation: ValueAnimator? = null
     private var flinging = false
     private val scroller: OverScroller
@@ -55,8 +59,11 @@ class DeltaAnimation(val host:View,
         }
     }
     fun startFlingAnimation(startX:Int,startY:Int,velocityX:Int,velocityY:Int,minX:Int,maxX:Int,minY:Int,maxY:Int){
+        info { "startFlingAnimation" }
         stopAll()
         flinging = true
+        val list = arrayListOf<Int>(startX,startY,velocityX,velocityY,minX,maxX,minY,maxY)
+        info { list }
         scroller.fling(startX,startY,velocityX,velocityY,minX,maxX,minY,maxY)
     }
     internal fun computeFling(){

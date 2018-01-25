@@ -1,20 +1,30 @@
 package sample.common
 
+import android.graphics.Point
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
+import android.widget.RelativeLayout
+import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.info
 
 /**
  * Created by work on 2018/1/24.
  */
 
-class MoveDelta(val host:View): View.OnTouchListener, GestureDetector.OnGestureListener{
+class MoveDelta(val host: ViewGroup, val animation:DeltaAnimation,
+                val moveOffset:(deltaX:Float,deltaY:Float)->Unit,
+                val position:()->Point):
+        View.OnTouchListener, GestureDetector.OnGestureListener,AnkoLogger{
+    override val loggerTag: String
+        get() = "_SiMMr"
     private var scrolling = false
     private var enabled = false
     private val gestureDetector: GestureDetector
     init {
         gestureDetector = GestureDetector(host.context, this)
+        host.setOnTouchListener(this)
     }
     fun enable(){
         enabled = true
@@ -39,6 +49,7 @@ class MoveDelta(val host:View): View.OnTouchListener, GestureDetector.OnGestureL
         return retVal
     }
     private fun onScrollEnd(event: MotionEvent){
+        info { "onScrollEnd" }
         hideHandle()
     }
     private fun hideHandle(){
@@ -46,12 +57,12 @@ class MoveDelta(val host:View): View.OnTouchListener, GestureDetector.OnGestureL
     }
 
     override fun onDown(e: MotionEvent): Boolean {
-        animationManager.stopFling()
+        animation.stopFling()
         return true
     }
 
     override fun onShowPress(e: MotionEvent?) {
-        info { "not implemented = onShowPress" }
+        //info { "not implemented = onShowPress" }
     }
 
     override fun onSingleTapUp(e: MotionEvent?): Boolean {
@@ -60,7 +71,9 @@ class MoveDelta(val host:View): View.OnTouchListener, GestureDetector.OnGestureL
 
     override fun onScroll(e1: MotionEvent, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
         scrolling = true
-        host.moveOffset(distanceX, distanceY)
+        info { "onScroll Beg:${position()}" }
+        moveOffset(distanceX, distanceY)
+        info{ "onScroll End:${position()}" }
         return true
     }
 
@@ -70,8 +83,11 @@ class MoveDelta(val host:View): View.OnTouchListener, GestureDetector.OnGestureL
 
     override fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
         info { "==onFling" }
-        animationManager.startFlingAnimation(500,500,velocityX.toInt(),velocityY.toInt(),
-                0,1000,0,1000)
+        val curPt = position()
+        /*animation.startFlingAnimation(curPt.x,curPt.y,velocityX.toInt(),velocityY.toInt(),
+                0,0,0,0)*/
+        animation.startFlingAnimation(curPt.x,curPt.y,5000,velocityY.toInt(),
+                0,50000,0,0)
         return true
     }
 }
