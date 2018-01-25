@@ -12,7 +12,7 @@ import sample.utils.BmpUtils
  * draw([a,b], canvas)
  */
 
-class BackPage(val count:Int = 50, val side:Int = 80) {
+class BackPage(val count:Int = 120, val side:Int = 200) {
     private var pages: List<Bitmap>
     private var canUse: Boolean
     init {

@@ -86,8 +86,8 @@ class MoveDelta(val host: ViewGroup, val animation:DeltaAnimation,
         val curPt = position()
         /*animation.startFlingAnimation(curPt.x,curPt.y,velocityX.toInt(),velocityY.toInt(),
                 0,0,0,0)*/
-        animation.startFlingAnimation(curPt.x,curPt.y,5000,velocityY.toInt(),
-                0,50000,0,0)
+        animation.startFlingAnimation(curPt.x,curPt.y,-velocityX.toInt(),0,
+                Int.MIN_VALUE,Int.MAX_VALUE,0,0)
         return true
     }
 }

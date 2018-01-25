@@ -58,4 +58,9 @@ class MoveHost(ctx:Context):RelativeLayout(ctx){
         canvas.translate(0F, height.toFloat()/2)
         backManager.draw(visX, visX+width,canvas)
     }
+
+    override fun computeScroll() {
+        super.computeScroll()
+        moveAnimation.computeFling()
+    }
 }
