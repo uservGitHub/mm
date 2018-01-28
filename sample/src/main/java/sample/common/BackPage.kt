@@ -1,6 +1,8 @@
 package sample.common
 
 import android.graphics.*
+import org.jetbrains.anko.AnkoLogger
+import org.jetbrains.anko.info
 import sample.utils.BmpUtils
 
 /**
@@ -12,7 +14,9 @@ import sample.utils.BmpUtils
  * draw([a,b], canvas)
  */
 
-class BackPage(val count:Int = 120, val side:Int = 200) {
+class BackPage(val count:Int = 2, val side:Int = 200):AnkoLogger {
+    override val loggerTag: String
+        get() = "_BP"
     private var pages: List<Bitmap>
     private var canUse: Boolean
     init {
@@ -21,10 +25,10 @@ class BackPage(val count:Int = 120, val side:Int = 200) {
             BmpUtils.buildBmp(80, index)
         })
     }
-
+    val T = count*side - 1
     //region    pixs: [beg,end] 或 [-MAX, +MAX]
     val beg: Int get() = if (endToEnd) Int.MIN_VALUE else 0
-    val end: Int get() = if (endToEnd) Int.MAX_VALUE else count * side - 1
+    val end: Int get() = if (endToEnd) Int.MAX_VALUE else count * side -1
     //endregion
     //region    能否响应endToEnd
     fun enable(){
@@ -65,7 +69,10 @@ class BackPage(val count:Int = 120, val side:Int = 200) {
             //region    兼容endToEnd
             val minInd = getInd(min)
             val maxInd = getInd(max)
-            val delta = getOffset(min)
+            val list = listOf<Int>(pBeg,pEnd, beg,end, minInd, maxInd)
+            info { list }
+            val delta = getOffset(min)+
+                    if (pBeg>0) 0 else pBeg
             canvas.translate(-delta.toFloat(), 0F)
             //region    draw clipped pages
             val pageRect = Rect(0,0,side,side)

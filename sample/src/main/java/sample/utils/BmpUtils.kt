@@ -15,7 +15,7 @@ class BmpUtils {
             val width = 3
             //region pixRect
             rectDraw(0, width, Color.BLACK, bmp)
-            rectDraw(width, width.shl(2), Color.RED, bmp)
+            rectDraw(width, width, Color.RED, bmp)
             //endregion
             val canvas = Canvas(bmp)
 
