@@ -11,43 +11,14 @@ import sample.utils.BmpUtils
  * 特点：方块、N个顺序排列、左上为(0,0)
  *
  */
-class BackCell(val countX:Int=3,val countY:Int=3,val side: Int=200):AnkoLogger {
+class BackCell(val countX:Int=13,val countY:Int=23,val side: Int=200):AnkoLogger {
     override val loggerTag: String
         get() = "_BC"
     private var cells: List<List<Bitmap>>
-    //region    EndToEnd
-    var endToEnd: Boolean = false
-        set(value) {
-            if (field == value) return
-            field = value
-            if(canRefreshEndToEnd) {
-                switchEndToEnd(true)
-                onEndToEndListener?.let { it() }
-            }
-        }
-    private var canRefreshEndToEnd: Boolean
-    private fun switchEndToEnd(flag:Boolean){
-
-    }
-    //region    能否响应endToEnd
-    fun enableEndToEnd(){
-        canRefreshEndToEnd = true
-    }
-    fun disableEndToEnd(){
-        canRefreshEndToEnd = false
-    }
-    //endregion
-    //region    onEndToEndChanged
-    private var onEndToEndListener: (() -> Unit)? = null
-
-    fun setOnEndToEndListener(listener: () -> Unit) {
-        onEndToEndListener = listener
-    }
-    //endregion
-
-    //endregion
+    var endToEnd: Boolean
+        private set
     init {
-        canRefreshEndToEnd = false
+        endToEnd = false
         //region    先横向后纵向(内层为横向)
         cells = List<List<Bitmap>>(countY, {index: Int ->
             List<Bitmap>(countX, { subIndex:Int ->
@@ -60,6 +31,24 @@ class BackCell(val countX:Int=3,val countY:Int=3,val side: Int=200):AnkoLogger {
     internal val TY = countY*side
     //横向周期（坐标点）
     internal val TX = countX*side
+    fun enabledEndToEnd(){
+        endToEnd = true
+    }
+    fun disabledEndToEnd(visX:Int, visY:Int):Point{
+        if (endToEnd){
+            endToEnd = false
+            val visPt=Point()
+            var temp = visX.rem(TX)
+            if (temp<0) temp+=TX
+            visPt.x = temp
+
+            temp = visY.rem(TY)
+            if (temp<0) temp+=TY
+            visPt.y = temp
+            return visPt
+        }
+        return Point(0,0)
+    }
 
     fun draw(canvas:Canvas, visX:Int, visY:Int) {
         //region    不应该出现的情况,打印跳出
@@ -76,11 +65,15 @@ class BackCell(val countX:Int=3,val countY:Int=3,val side: Int=200):AnkoLogger {
             return
         }
         //endregion
-        var minIndX = getIndX(Math.max(visX, begX))
-        var minIndY = getIndY(Math.max(visY, begY))
+        val minIndX = getIndX(Math.max(visX, begX))
+        val minIndY = getIndY(Math.max(visY, begY))
         calcVisX(visX, minIndX)
         calcVisY(visY, minIndY)
 
+        info { "visXY:($visX,$visY)" }
+        info { "firstPt:($firstVisLeftOffsetX,$firstVisTopOffsetY)" }
+        info { "minInd:($minIndX,$minIndY)" }
+        info { "visCountXY:($visCountX,$visCountY)" }
         canvas.apply {
             //小于0表示：第一个Cell内的左端偏移，大于于0表示：第一个Cell跳过的偏移
             translate(firstVisLeftOffsetX, firstVisTopOffsetY)
@@ -97,7 +90,7 @@ class BackCell(val countX:Int=3,val countY:Int=3,val side: Int=200):AnkoLogger {
                 //region    绘制一行
                 var xInd = 0
                 while (xInd < visCountX) {
-                    drawBitmap(cells[yInd.rem(countY)][xInd.rem(countX)], cellRect, rect, paint)
+                    drawBitmap(cells[(yInd+minIndY).rem(countY)][(xInd+minIndX).rem(countX)], cellRect, rect, paint)
                     xInd++
                     rect.offset(side, 0)
                 }
@@ -124,15 +117,15 @@ class BackCell(val countX:Int=3,val countY:Int=3,val side: Int=200):AnkoLogger {
     //region    getInd
     private inline fun getIndX(x: Int): Int {
         // T = [0, count*side-1] 或者 [0, count*side),这个更好
-        val ind = x.rem(TX) / side
-        if (ind < 0) return ind + countX
-        return ind
+        var temp = x.rem(TX)
+        if (temp < 0) temp += TX
+        return temp / side
     }
     private inline fun getIndY(y: Int): Int {
         // T = [0, count*side-1] 或者 [0, count*side),这个更好
-        val ind = y.rem(TY) / side
-        if (ind < 0) return ind + countY
-        return ind
+        var temp = y.rem(TY)
+        if (temp < 0) temp += TY
+        return temp / side
     }
     //endregion
     //region    visible cells

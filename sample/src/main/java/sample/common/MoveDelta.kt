@@ -56,16 +56,18 @@ class DragPinchManager(val animation: HostAnimation,
     }
     private fun onScrollEnd(event: MotionEvent) {
         //region    过界回滚
-        val pt = currentLeftTop()
-        val frame = ptRange()
-        val endX = if (pt.x < frame.left) frame.left
-        else if (pt.x > frame.right) frame.right
-        else pt.x
-        val endY = if (pt.y < frame.top) frame.top
-        else if (pt.y > frame.bottom) frame.bottom
-        else pt.y
-        if (pt.x != endX || pt.y != endY) {
-            animation.startXYAnimation(pt.x, pt.y, endX, endY)
+        if (true) {
+            val pt = currentLeftTop()
+            val frame = ptRange()
+            val endX = if (pt.x < frame.left) frame.left
+            else if (pt.x > frame.right) frame.right
+            else pt.x
+            val endY = if (pt.y < frame.top) frame.top
+            else if (pt.y > frame.bottom) frame.bottom
+            else pt.y
+            if (pt.x != endX || pt.y != endY) {
+                animation.startXYAnimation(pt.x, pt.y, endX, endY)
+            }
         }
         //endregion
         scrollEnd()

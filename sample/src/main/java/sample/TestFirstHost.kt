@@ -3,10 +3,9 @@ package pdfbook.sample.stages
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.ViewManager
+import org.jetbrains.anko.*
 import org.jetbrains.anko.custom.ankoView
-import org.jetbrains.anko.dip
-import org.jetbrains.anko.matchParent
-import org.jetbrains.anko.verticalLayout
+import org.jetbrains.anko.sdk25.coroutines.onClick
 import pdfbook.sample.stages.ScreenUtils
 import sample.common.FirstHost
 
@@ -24,9 +23,39 @@ class TestFirstHost(): AppCompatActivity(){
         ScreenUtils.notitle(this)
         super.onCreate(savedInstanceState)
         verticalLayout {
+            linearLayout {
+                button("toggleEndToEnd"){
+                    onClick {
+                        targetView.toggleEndToEnd()
+                    }
+                }
+                button("VisX++"){
+                    onClick {
+                        targetView.moveOffset(1F,0F)
+                    }
+                }
+                button("VisX--"){
+                    onClick {
+                        targetView.moveOffset(-1F,0F)
+                    }
+                }
+                button("VisY++"){
+                    onClick {
+                        targetView.moveOffset(0F,1F)
+                    }
+                }
+                button("VisY--"){
+                    onClick {
+                        targetView.moveOffset(0F,-1F)
+                    }
+                }
+            }
             targetView = firstHost() {
-
             }.lparams(width = matchParent, height = dip(0),weight = 1F)
         }
+    }
+    override fun onResume() {
+        super.onResume()
+        ScreenUtils.fullScreen(this)
     }
 }

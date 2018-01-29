@@ -29,9 +29,7 @@ class FirstHost(ctx:Context):RelativeLayout(ctx),AnkoLogger {
         shockX = 0F
         shockY = 0F
         backManager = BackCell().apply {
-            endToEnd = false
-            enableEndToEnd()
-            setOnEndToEndListener { reDraw() }
+            enabledEndToEnd()
         }
         animationManager = HostAnimation(this, this::moveTo, this::movingEnd)
         dragPinchManager = DragPinchManager(animationManager,
@@ -68,13 +66,15 @@ class FirstHost(ctx:Context):RelativeLayout(ctx),AnkoLogger {
         visY = y
         shockX = visX.toFloat()
         shockY = visY.toFloat()
+        info { "moveTo:($visX,$visY)" }
         reDraw()
     }
-    private inline fun moveOffset(dx:Float, dy:Float){
+    internal inline fun moveOffset(dx:Float, dy:Float){
         shockX += dx
         shockY += dy
         visX = shockX.toInt()
         visY = shockY.toInt()
+        info { "moveOffset:($visX,$visY)" }
         reDraw()
     }
     private inline fun movingEnd(){
@@ -85,6 +85,18 @@ class FirstHost(ctx:Context):RelativeLayout(ctx),AnkoLogger {
     }
     private inline fun currentPt() = Point(visX, visY)
     private inline fun ptRange() = backManager.range
+    fun toggleEndToEnd(){
+        if (backManager.endToEnd){
+            val pt = backManager.disabledEndToEnd(visX, visY)
+            visX = pt.x
+            visY = pt.y
+            shockX = visX.toFloat()
+            shockY = visY.toFloat()
+        }else{
+            backManager.enabledEndToEnd()
+        }
+        reDraw()
+    }
 }
 
 class MoveHost(ctx:Context):RelativeLayout(ctx),AnkoLogger{
