@@ -4,6 +4,222 @@ import android.graphics.*
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.info
 import sample.utils.BmpUtils
+import sun.nio.cs.ext.MacHebrew
+
+/**
+ * BackCell 背景格子
+ * 特点：方块、N个顺序排列、左上为(0,0)
+ *
+ */
+class BackCell(val countX:Int=2,val countY:Int=2,val side: Int=200):AnkoLogger {
+    override val loggerTag: String
+        get() = "_BC"
+    private var cells: List<List<Bitmap>>
+    //region    EndToEnd
+    var endToEnd: Boolean = false
+        set(value) {
+            if (field == value) return
+            field = value
+            if(canRefreshEndToEnd) {
+                switchEndToEnd(true)
+                onEndToEndListener?.let { it() }
+            }
+        }
+    private var canRefreshEndToEnd: Boolean
+    private fun switchEndToEnd(flag:Boolean){
+
+    }
+    //region    能否响应endToEnd
+    fun enableEndToEnd(){
+        canRefreshEndToEnd = true
+    }
+    fun disableEndToEnd(){
+        canRefreshEndToEnd = false
+    }
+    //endregion
+    //region    onEndToEndChanged
+    private var onEndToEndListener: (() -> Unit)? = null
+
+    fun setOnEndToEndListener(listener: () -> Unit) {
+        onEndToEndListener = listener
+    }
+    //endregion
+
+    //endregion
+    init {
+        canRefreshEndToEnd = false
+        //region    先横向后纵向(内层为横向)
+        cells = List<List<Bitmap>>(countY, {index: Int ->
+            List<Bitmap>(countX, { subIndex:Int ->
+                BmpUtils.buildBmp(side, "$subIndex|$index")
+            })
+        })
+        //endregion
+    }
+    //纵向周期（坐标点）
+    internal val TY = countY*side
+    //横向周期（坐标点）
+    internal val TX = countX*side
+
+    fun draw(canvas:Canvas, visX:Int, visY:Int) {
+        //region    不应该出现的情况,打印跳出
+        if (visHeight == 0 || visWidth == 0) {
+            info { "Error:(visWidth,visHeight)" }
+            return
+        }
+        if (visX !in begX..endX) {
+            info { "Error:(begX,endX)" }
+            return
+        }
+        if (visY !in begY..endY) {
+            info { "Error:(begY,endY)" }
+            return
+        }
+        //endregion
+        var minIndX = getIndX(Math.max(visX, begX))
+        var minIndY = getIndY(Math.max(visY, begY))
+        calcVisX(visX, minIndX)
+        calcVisY(visY, minIndY)
+
+        canvas.apply {
+            //小于0表示：第一个Cell内的左端偏移，大于于0表示：第一个Cell跳过的偏移
+            translate(firstVisLeftOffsetX, firstVisTopOffsetY)
+
+            val cellRect = Rect(0, 0, side, side)
+            val rect = Rect(cellRect)
+            val paint = Paint().apply {
+                flags = Paint.ANTI_ALIAS_FLAG
+            }
+            var yInd = 0
+            while (yInd < visCountY) {
+                //横向渲染
+                rect.offsetTo(0, yInd * side)
+                //region    绘制一行
+                var xInd = 0
+                while (xInd < visCountX) {
+                    drawBitmap(cells[yInd.rem(countY)][xInd.rem(countX)], cellRect, rect, paint)
+                    xInd++
+                    rect.offset(side, 0)
+                }
+                //endregion
+                yInd++
+            }
+
+            //抵消最开始的操作
+            translate(-firstVisLeftOffsetX, -firstVisTopOffsetY)
+        }
+    }
+
+    //region    visibleSize
+    var visWidth: Int = 0
+    var visHeight: Int = 0
+    //endregion
+    //region    range
+    val begX: Int get() = if (endToEnd) Int.MIN_VALUE else 0
+    val begY:Int get() = if (endToEnd) Int.MIN_VALUE else 0
+    val endX: Int get() = if (endToEnd) Int.MAX_VALUE else TX -1
+    val endY: Int get() = if (endToEnd) Int.MAX_VALUE else TY -1
+    val range: Rect get() = Rect(begX,begY,endX-0,endY-0)
+    //endregion
+    //region    getInd
+    private inline fun getIndX(x: Int): Int {
+        // T = [0, count*side-1] 或者 [0, count*side),这个更好
+        val ind = x.rem(TX) / side
+        if (ind < 0) return ind + countX
+        return ind
+    }
+    private inline fun getIndY(y: Int): Int {
+        // T = [0, count*side-1] 或者 [0, count*side),这个更好
+        val ind = y.rem(TY) / side
+        if (ind < 0) return ind + countY
+        return ind
+    }
+    //endregion
+    //region    visible cells
+    private var firstVisLeftOffsetX = 0F
+    private var firstVisTopOffsetY = 0F
+    private var visCountX = 0
+    private var visCountY = 0
+    //计算以x开始跨度visWidth,覆盖到的Cell数量及起始Cell的偏移
+    private inline fun calcVisX(x: Int, ind: Int) {
+        if (x <= begX) {
+            //region    包含跳格子（终点有无格子的情况）
+            firstVisLeftOffsetX = (begX - x).toFloat()
+            val width = visWidth + x
+            var factor = width / side //要累计
+            var facDelta = width.rem(side)   //要累减
+            if (facDelta > 0) factor++
+            visCountX = Math.min(factor, countX)
+            //endregion
+            return
+        }
+
+        val delta = x.rem(side) //可能为负
+        var factor = visWidth / side  //要累计
+        var facDelta = visWidth.rem(side)   //要累减
+
+        firstVisLeftOffsetX = -(if (delta < 0) side + delta else delta).toFloat()
+
+        //整数倍左边x存在
+        if (delta != 0) {
+            factor++
+            //facDelta累减
+            if (delta < 0) facDelta += delta
+            else facDelta += delta - side
+        }
+
+        //整数倍右边x存在
+        if (facDelta > 0) factor++
+
+        if (!endToEnd && (factor + ind > countX)) {
+            //region    终点有空格子
+            visCountX = countX - ind
+            //endregion
+            return
+        }
+        visCountX = factor
+    }
+    //计算以y开始跨度visHeight,覆盖到的Cell数量及起始Cell的偏移
+    private inline fun calcVisY(y: Int, ind: Int){
+        if (y <= begY) {
+            //region    包含跳格子（终点有无格子的情况）
+            firstVisTopOffsetY = (begY - y).toFloat()
+            val height = visHeight + y
+            var factor = height / side //要累计
+            var facDelta = height.rem(side)   //要累减
+            if (facDelta > 0) factor++
+            visCountY = Math.min(factor, countY)
+            //endregion
+            return
+        }
+
+        val delta = y.rem(side) //可能为负
+        var factor = visHeight / side  //要累计
+        var facDelta = visHeight.rem(side)   //要累减
+
+        firstVisTopOffsetY = -(if (delta < 0) side + delta else delta).toFloat()
+
+        //整数倍左边x存在
+        if (delta != 0) {
+            factor++
+            //facDelta累减
+            if (delta < 0) facDelta += delta
+            else facDelta += delta - side
+        }
+
+        //整数倍右边x存在
+        if (facDelta > 0) factor++
+
+        if (!endToEnd && (factor + ind > countY)) {
+            //region    终点有空格子
+            visCountY = countY - ind
+            //endregion
+            return
+        }
+        visCountY = factor
+    }
+    //endregion
+}
 
 /**
  * Created by work on 2018/1/24.
