@@ -12,7 +12,7 @@ class BmpUtils {
             val bmp = Bitmap.createBitmap(side, side, Bitmap.Config.RGB_565).apply {
                 eraseColor(Color.LTGRAY)
             }
-            val width = 3
+            val width = 6
             //region pixRect
             rectDraw(0, width, Color.BLACK, bmp)
             rectDraw(width, width, Color.RED, bmp)

@@ -17,7 +17,8 @@ import org.jetbrains.anko.info
 class DragPinchManager(val animation: HostAnimation,
                        val scrollEnd: ()->Unit,
                        val currentLeftTop: ()->Point,
-                       val ptRange: ()->Rect):
+                       val ptRange: ()->Rect,
+                       val moveOffset: (deltaX: Float, deltaY: Float) -> Unit):
         View.OnTouchListener, GestureDetector.OnGestureListener,AnkoLogger {
     override val loggerTag: String
         get() = "_DPM"
@@ -77,10 +78,7 @@ class DragPinchManager(val animation: HostAnimation,
 
     override fun onScroll(e1: MotionEvent, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
         scrolling = true
-        val pt = currentLeftTop()
-        val toX = pt.x + distanceX.toInt()
-        val toY = pt.y + distanceY.toInt()
-        animation.moveTo(toX, toY)
+        moveOffset(distanceX, distanceY)
         return true
     }
 

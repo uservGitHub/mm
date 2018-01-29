@@ -4,14 +4,14 @@ import android.graphics.*
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.info
 import sample.utils.BmpUtils
-import sun.nio.cs.ext.MacHebrew
+
 
 /**
  * BackCell 背景格子
  * 特点：方块、N个顺序排列、左上为(0,0)
  *
  */
-class BackCell(val countX:Int=2,val countY:Int=2,val side: Int=200):AnkoLogger {
+class BackCell(val countX:Int=3,val countY:Int=3,val side: Int=200):AnkoLogger {
     override val loggerTag: String
         get() = "_BC"
     private var cells: List<List<Bitmap>>
@@ -67,11 +67,11 @@ class BackCell(val countX:Int=2,val countY:Int=2,val side: Int=200):AnkoLogger {
             info { "Error:(visWidth,visHeight)" }
             return
         }
-        if (visX !in begX..endX) {
+        if (visX > endX || visX+visWidth<begX) {
             info { "Error:(begX,endX)" }
             return
         }
-        if (visY !in begY..endY) {
+        if (visY >endY|| visY+visHeight<begY) {
             info { "Error:(begY,endY)" }
             return
         }
