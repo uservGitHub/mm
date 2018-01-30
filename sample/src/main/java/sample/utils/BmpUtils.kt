@@ -1,12 +1,18 @@
 package sample.utils
 
 import android.graphics.*
+import android.util.Log
+import org.jetbrains.anko.AnkoLogger
 
 /**
  * Created by Administrator on 2018/1/23.
  */
 class BmpUtils {
     companion object {
+        private const val tag = "_BU"
+        private fun info(any:Any){
+            Log.i(tag, "$any")
+        }
         //region    对外接口
         //模拟Pdfpage
         fun simPdfpage(width: Int,height: Int, lines:List<String>):Bitmap {
@@ -62,23 +68,49 @@ class BmpUtils {
             return bmp
         }
         fun drawLineFrame(bmp:Bitmap, canvas: Canvas) {
-            val linePaint = strokePaint(Color.RED, 2F)
+            val linePaint = strokePaint(Color.RED, 1F)
             val pixels = IntArray(bmp.width * bmp.height, { 0 })
-            bmp.getPixels(pixels,0,bmp.width,0,0,bmp.width,bmp.height)
+            bmp.getPixels(pixels, 0, bmp.width, 0, 0, bmp.width, bmp.height)
             //region    横向扫描
             val width = bmp.width
             val height = bmp.height
             val MAX = 80
+            val MINCN = 18
+            val MAXCN = (.8F * width).toInt()
+            var last = false
+            var current = false
+
             for (y in 0 until height) {
+                var trueCount = 0
+                var trueFirst = -1
+                var trueLast = 0
                 for (x in 0 until width) {
                     val gray = pixels[width * y + x]
-                    var alpha = gray.ushr(24)
-                    var red = gray.ushr(16).and(0xFF)
-                    var green = gray.ushr(8).and(0xFF)
-                    var blue = gray.and(0xFF)
-                    red = if (red > MAX) 255 else 0
-                    green = if (green > MAX) 255 else 0
-                    blue = if (blue > MAX) 255 else 0
+                    //region    trueCount
+                    if (gray.and(0xFF0000).ushr(16) < MAX ||
+                            gray.and(0xFF00).ushr(8) < MAX ||
+                            gray.and(0xFF) < MAX) {
+                        trueCount++
+                        if(trueFirst!=-1) trueFirst = x
+                        trueLast = x
+                    }
+                    //endregion
+                }
+                info("$y:$trueCount")
+                if (trueCount in MINCN..MAXCN){
+                    if (!last){
+                        //第一次符合要求
+                        canvas.drawLine(trueFirst.toFloat(),y.toFloat(),
+                                trueLast.toFloat(),y.toFloat(), linePaint)
+                    }
+                    last = true
+                }else{
+                    if (last){
+                        //最后一次符合要求
+                        canvas.drawLine(trueFirst.toFloat(),y.toFloat(),
+                                trueLast.toFloat(),y.toFloat(), linePaint)
+                    }
+                    last = false
                 }
             }
             //endregion
