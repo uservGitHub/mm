@@ -112,7 +112,7 @@ class BackCell(val countX:Int=13,val countY:Int=23,val side: Int=200):AnkoLogger
     val begY:Int get() = if (endToEnd) Int.MIN_VALUE else 0
     val endX: Int get() = if (endToEnd) Int.MAX_VALUE else TX -1
     val endY: Int get() = if (endToEnd) Int.MAX_VALUE else TY -1
-    val range: Rect get() = Rect(begX,begY,endX-0,endY-0)
+    val range: Rect get() = Rect(begX,begY,endX-visWidth,endY-visHeight)
     //endregion
     //region    getInd
     private inline fun getIndX(x: Int): Int {

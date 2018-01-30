@@ -29,7 +29,7 @@ class FirstHost(ctx:Context):RelativeLayout(ctx),AnkoLogger {
         shockX = 0F
         shockY = 0F
         backManager = BackCell().apply {
-            enabledEndToEnd()
+            //disabledEndToEnd(0,0)
         }
         animationManager = HostAnimation(this, this::moveTo, this::movingEnd)
         dragPinchManager = DragPinchManager(animationManager,
