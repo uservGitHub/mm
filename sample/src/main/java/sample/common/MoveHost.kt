@@ -1,16 +1,52 @@
 package sample.common
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Point
+import android.graphics.*
 import android.widget.RelativeLayout
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.info
+import sample.utils.BmpUtils
+import sample.utils.OcrUtils
 
 /**
  * Created by work on 2018/1/25.
  */
+
+class TextHost(ctx: Context):RelativeLayout(ctx),AnkoLogger {
+    override val loggerTag: String
+        get() = "_TH"
+    var textBmp: Bitmap
+        private set
+    val textList: List<String>
+    fun nextText() {
+        textIndex++
+        textIndex = textIndex.rem(textList.size)
+        textBmp = BmpUtils.simPdfpage(600, 800, toLines(textList[textIndex]))
+        invalidate()
+    }
+    fun checkLine(){
+
+    }
+    private var textIndex = 0
+    private inline fun toLines(str:String) = str.split("\n".toRegex())
+    init {
+        setWillNotDraw(false)
+        textList = listOf("第一行字\n第二行字\n第三行字", "123abc只有一行")
+        textBmp = BmpUtils.simPdfpage(600, 800, toLines(textList[textIndex]))
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        if (isInEditMode()) {
+            return;
+        }
+        canvas.drawColor(Color.LTGRAY)
+        canvas.drawBitmap(textBmp,
+                Rect(0, 0, textBmp.width, textBmp.height),
+                Rect(0, 0, textBmp.width, textBmp.height),
+                Paint())
+        BmpUtils.drawLineFrame(textBmp, canvas)
+    }
+}
 
 class FirstHost(ctx:Context):RelativeLayout(ctx),AnkoLogger {
     override val loggerTag: String
@@ -85,6 +121,8 @@ class FirstHost(ctx:Context):RelativeLayout(ctx),AnkoLogger {
     }
     private inline fun currentPt() = Point(visX, visY)
     private inline fun ptRange() = backManager.range
+
+    //region    外部接口
     fun toggleEndToEnd(){
         if (backManager.endToEnd){
             val pt = backManager.disabledEndToEnd(visX, visY)
@@ -97,6 +135,11 @@ class FirstHost(ctx:Context):RelativeLayout(ctx),AnkoLogger {
         }
         reDraw()
     }
+    fun resetBoundary(flag:Boolean){
+        dragPinchManager.autoResetBoundary(flag)
+        reDraw()
+    }
+    //endregion
 }
 
 class MoveHost(ctx:Context):RelativeLayout(ctx),AnkoLogger{

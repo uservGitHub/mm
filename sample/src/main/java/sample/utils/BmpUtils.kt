@@ -7,7 +7,25 @@ import android.graphics.*
  */
 class BmpUtils {
     companion object {
+        //region    对外接口
+        //模拟Pdfpage
+        fun simPdfpage(width: Int,height: Int, lines:List<String>):Bitmap {
+            val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565).apply {
+                eraseColor(Color.WHITE)
+                //region    最外层边框
+                rectDraw(0, 8, Color.YELLOW, this)
+                //endregion
+            }
+            //region    写文字
+            val canvas = Canvas(bmp)
+            textDrawLines(canvas,
+                    textPaint(Color.BLUE, 40F),
+                    Rect(0,0,bmp.width,bmp.height),
+                    lines)
+            //endregion
 
+            return bmp
+        }
         fun buildBmp(side: Int, msg: Any? = null): Bitmap {
             val bmp = Bitmap.createBitmap(side, side, Bitmap.Config.RGB_565).apply {
                 eraseColor(Color.LTGRAY)
@@ -43,6 +61,29 @@ class BmpUtils {
             //endregion
             return bmp
         }
+        fun drawLineFrame(bmp:Bitmap, canvas: Canvas) {
+            val linePaint = strokePaint(Color.RED, 2F)
+            val pixels = IntArray(bmp.width * bmp.height, { 0 })
+            bmp.getPixels(pixels,0,bmp.width,0,0,bmp.width,bmp.height)
+            //region    横向扫描
+            val width = bmp.width
+            val height = bmp.height
+            val MAX = 80
+            for (y in 0 until height) {
+                for (x in 0 until width) {
+                    val gray = pixels[width * y + x]
+                    var alpha = gray.ushr(24)
+                    var red = gray.ushr(16).and(0xFF)
+                    var green = gray.ushr(8).and(0xFF)
+                    var blue = gray.and(0xFF)
+                    red = if (red > MAX) 255 else 0
+                    green = if (green > MAX) 255 else 0
+                    blue = if (blue > MAX) 255 else 0
+                }
+            }
+            //endregion
+        }
+        //endregion
 
         private fun deltaCenterHeightFromFont(paint: Paint) =
                 paint.fontMetricsInt.let {
@@ -98,6 +139,20 @@ class BmpUtils {
             canvas.drawText("$msg",
                     rect.exactCenterX(), (rect.exactCenterY() - deltaCenterHeightFromFont(textPaint)),
                     textPaint)
+        }
+        private fun textDrawLines(canvas: Canvas, textPaint: Paint, rect: Rect, lines: List<String>) {
+            val count = lines.size
+            val deltaHeight = rect.height()/count
+            val lineRect = Rect(0,0,rect.width(),deltaHeight)
+            lines.forEach {
+                canvas.drawText(it,
+                        lineRect.exactCenterX(), (lineRect.exactCenterY() - deltaCenterHeightFromFont(textPaint)),
+                        textPaint)
+                lineRect.offset(0, deltaHeight)
+            }
+            /*canvas.drawText("$msg",
+                    rect.exactCenterX(), (rect.exactCenterY() - deltaCenterHeightFromFont(textPaint)),
+                    textPaint)*/
         }
     }
 }

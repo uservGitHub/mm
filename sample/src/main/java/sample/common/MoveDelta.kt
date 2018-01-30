@@ -24,6 +24,7 @@ class DragPinchManager(val animation: HostAnimation,
         get() = "_DPM"
     private var scrolling = false
     private var enabled = false
+    private var canAutoReseting = false
     private val gestureDetector: GestureDetector
 
     init {
@@ -37,6 +38,13 @@ class DragPinchManager(val animation: HostAnimation,
 
     fun disable() {
         enabled = false
+    }
+
+    fun autoResetBoundary(flag:Boolean){
+        canAutoReseting = flag
+        if (canAutoReseting){
+            resetBoundary()
+        }
     }
 
     override fun onTouch(v: View, event: MotionEvent): Boolean {
@@ -54,20 +62,28 @@ class DragPinchManager(val animation: HostAnimation,
         }
         return retVal
     }
+    //边界复位
+    private fun resetBoundary(){
+        if (scrolling){
+            return
+        }
+
+        val pt = currentLeftTop()
+        val frame = ptRange()
+        val endX = if (pt.x < frame.left) frame.left
+        else if (pt.x > frame.right) frame.right
+        else pt.x
+        val endY = if (pt.y < frame.top) frame.top
+        else if (pt.y > frame.bottom) frame.bottom
+        else pt.y
+        if (pt.x != endX || pt.y != endY) {
+            animation.startXYAnimation(pt.x, pt.y, endX, endY)
+        }
+    }
     private fun onScrollEnd(event: MotionEvent) {
         //region    过界回滚
-        if (true) {
-            val pt = currentLeftTop()
-            val frame = ptRange()
-            val endX = if (pt.x < frame.left) frame.left
-            else if (pt.x > frame.right) frame.right
-            else pt.x
-            val endY = if (pt.y < frame.top) frame.top
-            else if (pt.y > frame.bottom) frame.bottom
-            else pt.y
-            if (pt.x != endX || pt.y != endY) {
-                animation.startXYAnimation(pt.x, pt.y, endX, endY)
-            }
+        if (canAutoReseting) {
+            resetBoundary()
         }
         //endregion
         scrollEnd()

@@ -24,6 +24,16 @@ class TestFirstHost(): AppCompatActivity(){
         super.onCreate(savedInstanceState)
         verticalLayout {
             linearLayout {
+                button("ToBoundary"){
+                    onClick {
+                        targetView.resetBoundary(true)
+                    }
+                }
+                button("NotBoundary"){
+                    onClick {
+                        targetView.resetBoundary(false)
+                    }
+                }
                 button("toggleEndToEnd"){
                     onClick {
                         targetView.toggleEndToEnd()
