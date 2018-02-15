@@ -110,8 +110,13 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
         return true
     }
 
+    //惯性操作被中断或结束（做一些其他操作）
     override fun flingEndAction() {
         info { "$hostId,flingEnd" }
+        //比如预处理
+        //...
+        //比如影藏某些显示
+        //...
     }
 
     override fun scrollEndAction(event: MotionEvent) {

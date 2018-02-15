@@ -58,7 +58,7 @@ interface DragPinchRawDriver {
     //滚动结束
     fun scrollEndAction(event: MotionEvent)
 
-    //惯性结束
+    //惯性结束(持续一段时间的操作，完全在动画中控制)
     fun flingEndAction()
 
     //预处理
