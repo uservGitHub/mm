@@ -33,7 +33,7 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
         visY = 0
         shockX = 0F
         shockY = 0F
-        animationManager = HostAnimation(this, this::moveTo, this::movingEnd)
+        animationManager = HostAnimation(this, this::moveTo, this::flingEndAction)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -68,16 +68,8 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
         visY = y
         shockX = visX.toFloat()
         shockY = visY.toFloat()
-        info { "moveTo:($visX,$visY)" }
+        //info { "moveTo:($visX,$visY)" }
         reDraw()
-    }
-
-    private inline fun movingEnd() {
-        info { "movingEnd" }
-    }
-
-    override fun scrollEndAction(event: MotionEvent) {
-        info { "scrollEnd" }
     }
 
     override fun moveOffset(dx: Float, dy: Float) {
@@ -85,7 +77,7 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
         shockY += dy
         visX = shockX.toInt()
         visY = shockY.toInt()
-        info { "moveOffset:$hostId($visX,$visY)" }
+        //info { "moveOffset:$hostId($visX,$visY)" }
         reDraw()
     }
 
@@ -105,18 +97,26 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
 
     override var canUse: Boolean = true
 
+    override var isFollow: Boolean = false
+
     override var isDownSource: Boolean = false
 
     override fun preProcess() {
-        info { "PreProcess" }
+        info { "$hostId,PreProcess" }
     }
 
     override fun doubleClickAction(event: MotionEvent): Boolean {
-        info { event }
-        info { "${super.hiting(event)},$hostId,($width,$height)" }
+        info { "$hostId,doubleClick" }
         return true
     }
 
+    override fun flingEndAction() {
+        info { "$hostId,flingEnd" }
+    }
+
+    override fun scrollEndAction(event: MotionEvent) {
+        info { "$hostId,scrollEnd" }
+    }
 
 
     /*override fun hiting(event: MotionEvent): Boolean {

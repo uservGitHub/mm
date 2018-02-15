@@ -19,6 +19,8 @@ import sample.common.HostAnimation
 
 //hostList 要驱动的接口列表，ctx 操控的整个表面
 //缩放功能作用整个表面，其他（点击、滑动）作用
+//滑动过程：moveOffset n 个, scrollEnd
+//惯性过程：滑动过程, movingEnd
 
 class DragPinchManager(val hostList:List<DragPinchRawDriver>, ctx:Context):
         View.OnTouchListener, GestureDetector.OnGestureListener,

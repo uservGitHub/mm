@@ -55,6 +55,9 @@ interface DragPinchRawDriver {
     //滚动结束
     fun scrollEndAction(event: MotionEvent):Unit
 
+    //惯性结束
+    fun flingEndAction():Unit
+
     //预处理
     fun preProcess()
 }

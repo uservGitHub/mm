@@ -2,12 +2,9 @@ package sample.skeleton
 
 import android.content.Context
 import android.view.View
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.RelativeLayout
-import android.widget.TextView
 import org.jetbrains.anko.*
 import android.view.ViewGroup
+import android.widget.*
 import org.jetbrains.anko.sdk25.coroutines.onClick
 import sample.common.BackCell
 
@@ -26,10 +23,12 @@ class OuterHost(ctx:Context):LinearLayout(ctx),AnkoLogger {
         backCell = BackCell()
         host1 = ScreenHost(ctx, backCell).apply { hostId = "-first" }
         host2 = ScreenHost(ctx, backCell).apply { hostId = "-second" }
-        val midVerLine = Button(ctx).apply {
-            onClick {
-
-            }
+        val midVerLine = LinearLayout(ctx).apply {
+            addView(Button(ctx).apply{
+                onClick {
+                    host1.isFollow = !host1.isFollow
+                }
+            })
         }
         dragPinchManager = DragPinchManager(listOf(host1, host2),ctx).apply {
             enable()
