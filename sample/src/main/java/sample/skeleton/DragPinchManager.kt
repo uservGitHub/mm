@@ -5,6 +5,7 @@ import android.graphics.Point
 import android.graphics.Rect
 import android.view.GestureDetector
 import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.info
@@ -12,20 +13,32 @@ import sample.common.HostAnimation
 
 /**
  * Created by work on 2018/2/14.
+ * 拖拽、点击等控制，输出控制驱动
+ * 驱动的实施是通过绑定控件的接口来实现的
  */
-class DragPinchManager(val ctx:Context,
-                       val hostList:List<Host>):
-        View.OnTouchListener, GestureDetector.OnGestureListener,GestureDetector.OnDoubleTapListener, AnkoLogger {
+
+//hostList 要驱动的接口列表，ctx 操控的整个表面
+//缩放功能作用整个表面，其他（点击、滑动）作用
+
+class DragPinchManager(val hostList:List<DrawPinchRawDriver>, ctx:Context):
+        View.OnTouchListener, GestureDetector.OnGestureListener,
+        GestureDetector.OnDoubleTapListener,ScaleGestureDetector.OnScaleGestureListener, AnkoLogger {
+
     override val loggerTag: String
         get() = "_DPM"
+
     private var scrolling = false
+    private var scaling = false
     private var enabled = false
+
     private val gestureDetector: GestureDetector
+    private val scaleGestureDetetor:ScaleGestureDetector
 
     init {
         gestureDetector = GestureDetector(ctx, this)
+        scaleGestureDetetor = ScaleGestureDetector(ctx, this)
         hostList.forEach {
-            it.setOnTouchListener(this)
+            it.host.setOnTouchListener(this)
         }
     }
 
@@ -37,38 +50,71 @@ class DragPinchManager(val ctx:Context,
         enabled = false
     }
 
-    override fun onDoubleTap(e: MotionEvent?): Boolean {
-        return true
-    }
-
-    override fun onDoubleTapEvent(e: MotionEvent?): Boolean {
+    //region    OnDoubleTapListener
+    override fun onDoubleTap(e: MotionEvent): Boolean {
+        hostList.forEach {
+            if (it.hiting(e)){
+                it.doubleClickAction(e)
+                return true
+            }
+        }
         return false
     }
+
+    override fun onDoubleTapEvent(e: MotionEvent?) = false
 
     override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-        info { "confirmedSource: ${e}" }
+        hostList.forEach {
+            if (it.hiting(e)){
+                it.clickAction(e)
+                return true
+            }
+        }
         return false
     }
+    //endregion
+
+    //region    OnScaleGestureListener
+    override fun onScaleBegin(detector: ScaleGestureDetector?): Boolean {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onScale(detector: ScaleGestureDetector?): Boolean {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onScaleEnd(detector: ScaleGestureDetector?) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+    //endregion
 
     override fun onTouch(v: View, event: MotionEvent): Boolean {
         if (!enabled) {
             return false
         }
         var retVal = false
-        //retVal = scaleGestureDetector.onTouchEvent(event)
+        retVal = scaleGestureDetetor.onTouchEvent(event)
         retVal = gestureDetector.onTouchEvent(event) || retVal
         if (event.action == MotionEvent.ACTION_UP) {
             if (scrolling) {
                 scrolling = false
-                onScrollEnd(event)
+                hostList.forEach {
+                    if (it.isDownSource) {
+                        it.scrollEndAction(event)
+                    } else {
+                        if (it.isFollow) {
+                            it.scrollEndAction(event)
+                        }
+                    }
+                }
             }
         }
         return retVal
     }
-    private fun onScrollEnd(event: MotionEvent) {
+/*    private fun onScrollEnd(event: MotionEvent) {
         //region    过界回滚
         if (true) {
-            /*val pt = currentLeftTop()
+            val pt = currentLeftTop()
             val frame = ptRange()
             val endX = if (pt.x < frame.left) frame.left
             else if (pt.x > frame.right) frame.right
@@ -78,31 +124,58 @@ class DragPinchManager(val ctx:Context,
             else pt.y
             if (pt.x != endX || pt.y != endY) {
                 animation.startXYAnimation(pt.x, pt.y, endX, endY)
-            }*/
+            }
         }
         //endregion
         //scrollEnd()
-    }
+    }*/
 
+    //中断加速,记录按下源
     override fun onDown(e: MotionEvent): Boolean {
-        //animation.stopFling()
-        return true
-    }
-
-    override fun onScroll(e1: MotionEvent, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
-        scrolling = true
-        //moveOffset(distanceX, distanceY)
         hostList.forEach {
-            it.moveOffset(distanceX, distanceY)
+            if (it.hiting(e)){
+                it.isDownSource = true
+                it.stopFling()
+            }else{
+                it.isDownSource = false
+                if (it.canUse && it.isFollow){
+                    it.stopFling()
+                }
+            }
         }
         return true
     }
 
+    //输出偏移量
+    override fun onScroll(e1: MotionEvent, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
+        scrolling = true
+        hostList.forEach {
+            if (it.isDownSource) {
+                it.moveOffset(distanceX, distanceY)
+            } else {
+                if (it.isFollow) {
+                    it.moveOffset(distanceX, distanceY)
+                }
+            }
+        }
+        return true
+    }
+
+    //输出加速度
     override fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
 /*        val pt = currentLeftTop()
         val frame = ptRange()
         animation.startFlingAnimation(pt.x, pt.y, -velocityX.toInt(), -velocityY.toInt(),
                 frame.left, frame.right, frame.top, frame.bottom)*/
+        hostList.forEach {
+            if (it.isDownSource) {
+                it.moveVelocity(velocityX, velocityY)
+            } else {
+                if (it.isFollow) {
+                    it.moveVelocity(velocityX, velocityY)
+                }
+            }
+        }
         return true
     }
 
