@@ -27,6 +27,7 @@ class OuterHost(ctx:Context):LinearLayout(ctx),AnkoLogger {
             addView(Button(ctx).apply{
                 onClick {
                     host1.isFollow = !host1.isFollow
+                    host2.isFollow = !host2.isFollow
                 }
             })
         }

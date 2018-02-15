@@ -21,7 +21,7 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
         get() = "_FH"
 
     var hostId: Any = "None"
-    private val animationManager: HostAnimation
+    private val animationManager: ScreenAnimation
     private var visX: Int
     private var visY: Int
     private var shockX: Float
@@ -33,7 +33,7 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
         visY = 0
         shockX = 0F
         shockY = 0F
-        animationManager = HostAnimation(this, this::moveTo, this::flingEndAction)
+        animationManager = ScreenAnimation(this)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -63,7 +63,7 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
     }
 
     private inline fun reDraw() = invalidate()
-    private inline fun moveTo(x: Int, y: Int) {
+    override fun moveTo(x: Int, y: Int) {
         visX = x
         visY = y
         shockX = visX.toFloat()

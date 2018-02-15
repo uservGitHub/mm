@@ -11,10 +11,13 @@ interface DragPinchRawDriver {
     //偏移
     fun moveOffset(dx: Float, dy: Float)
 
+    //移动到
+    fun moveTo(x:Int, y:Int)
+
     //加速移动
     fun moveVelocity(velocityX: Float,velocityY:Float)
 
-    //停止惯性操作
+    //停止惯性操作(时间线程)
     fun stopFling()
 
     //只做绑定用
@@ -53,10 +56,10 @@ interface DragPinchRawDriver {
     fun doubleClickAction(event: MotionEvent) = false
 
     //滚动结束
-    fun scrollEndAction(event: MotionEvent):Unit
+    fun scrollEndAction(event: MotionEvent)
 
     //惯性结束
-    fun flingEndAction():Unit
+    fun flingEndAction()
 
     //预处理
     fun preProcess()
