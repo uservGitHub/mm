@@ -7,7 +7,7 @@ import android.view.View
  * Created by work on 2018/2/14.
  */
 
-interface DrawPinchRawDriver {
+interface DragPinchRawDriver {
     //偏移
     fun moveOffset(dx: Float, dy: Float)
 
@@ -37,8 +37,8 @@ interface DrawPinchRawDriver {
         val top = pt[1]
         val right = left + host.measuredWidth
         val bottom = top + host.measuredHeight
-        val x = event.x
-        val y = event.y
+        val x = event.rawX
+        val y = event.rawY
         if (x > left && x < right && y > top && y < bottom) {
             return true
         }

@@ -16,6 +16,7 @@ import sample.common.HostAnimation
  * Created by work on 2018/2/14.
  */
 
+/*
 class Host(ctx: Context,val childId:String): RelativeLayout(ctx), DragPinchDriver,AnkoLogger {
     override val loggerTag: String
         get() = "_FH"
@@ -35,10 +36,7 @@ class Host(ctx: Context,val childId:String): RelativeLayout(ctx), DragPinchDrive
             //disabledEndToEnd(0,0)
         }
         animationManager = HostAnimation(this, this::moveTo, this::movingEnd)
-        /*dragPinchManager = DragPinchManager(animationManager,
-                this::scrollEnd,this::currentPt,this::ptRange,this::moveOffset).apply {
-            enable()
-        }*/
+
         onClick {
             info { childId }
         }
@@ -107,4 +105,4 @@ class Host(ctx: Context,val childId:String): RelativeLayout(ctx), DragPinchDrive
         }
         reDraw()
     }
-}
+}*/

@@ -9,6 +9,7 @@ import android.widget.TextView
 import org.jetbrains.anko.*
 import android.view.ViewGroup
 import org.jetbrains.anko.sdk25.coroutines.onClick
+import sample.common.BackCell
 
 
 /**
@@ -16,19 +17,21 @@ import org.jetbrains.anko.sdk25.coroutines.onClick
  */
 
 class OuterHost(ctx:Context):LinearLayout(ctx),AnkoLogger {
-    private val host1: Host
-    private val host2: Host
+    private val host1: ScreenHost
+    private val host2: ScreenHost
     private val dragPinchManager: DragPinchManager
+    private val backCell:BackCell
 
     init {
-        host1 = Host(ctx, "one")
-        host2 = Host(ctx, "two")
+        backCell = BackCell()
+        host1 = ScreenHost(ctx, backCell).apply { hostId = "-first" }
+        host2 = ScreenHost(ctx, backCell).apply { hostId = "-second" }
         val midVerLine = Button(ctx).apply {
             onClick {
 
             }
         }
-        dragPinchManager = DragPinchManager(ctx, listOf(host1, host2)).apply {
+        dragPinchManager = DragPinchManager(listOf(host1, host2),ctx).apply {
             enable()
         }
         try{

@@ -20,7 +20,7 @@ import sample.common.HostAnimation
 //hostList 要驱动的接口列表，ctx 操控的整个表面
 //缩放功能作用整个表面，其他（点击、滑动）作用
 
-class DragPinchManager(val hostList:List<DrawPinchRawDriver>, ctx:Context):
+class DragPinchManager(val hostList:List<DragPinchRawDriver>, ctx:Context):
         View.OnTouchListener, GestureDetector.OnGestureListener,
         GestureDetector.OnDoubleTapListener,ScaleGestureDetector.OnScaleGestureListener, AnkoLogger {
 
