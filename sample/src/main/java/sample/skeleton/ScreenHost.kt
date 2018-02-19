@@ -3,6 +3,7 @@ package sample.skeleton
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Rect
 import android.view.MotionEvent
 import android.view.View
 import android.widget.RelativeLayout
@@ -22,6 +23,9 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
 
     var hostId: Any = "None"
     private val animationManager: ScreenAnimation
+    //private val moveHandle: AdvMoveHanle
+    //private val moveHandle: EditMoveHandle
+    private val moveHandle:DefaultEditFrame
     private var visX: Int
     private var visY: Int
     private var shockX: Float
@@ -34,6 +38,19 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
         shockX = 0F
         shockY = 0F
         animationManager = ScreenAnimation(this)
+
+        /*moveHandle = EditMoveHandle(ctx).apply {
+            setupLayout(this@ScreenHost)
+        }*/
+        /*moveHandle = AdvMoveHanle(ctx).apply {
+            setupLayout(this@ScreenHost)
+        }*/
+
+        moveHandle = DefaultEditFrame(ctx,{e: MoveHander ->
+            info { e.lastPt }
+        }).apply {
+            setupLayout(this@ScreenHost, Rect(100,100,400,600))
+        }
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -69,6 +86,8 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
         shockX = visX.toFloat()
         shockY = visY.toFloat()
         //info { "moveTo:($visX,$visY)" }
+        //moveHandle.dump(x,y)
+        moveHandle.moveOffset(shockX, shockY)
         reDraw()
     }
 
@@ -78,6 +97,7 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
         visX = shockX.toInt()
         visY = shockY.toInt()
         //info { "moveOffset:$hostId($visX,$visY)" }
+        moveHandle.moveOffset(shockX, shockY)
         reDraw()
     }
 
@@ -110,9 +130,17 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
         return true
     }
 
+    override fun clickAction(event: MotionEvent): Boolean {
+        if (moveHandle.showing) moveHandle.hide()
+        else moveHandle.show()
+        //moveHandle.show()
+        return true
+    }
+
     //惯性操作被中断或结束（做一些其他操作）
     override fun flingEndAction() {
         info { "$hostId,flingEnd" }
+        //moveHandle.hideDelayed()
         //比如预处理
         //...
         //比如影藏某些显示

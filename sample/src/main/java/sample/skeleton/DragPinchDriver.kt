@@ -17,7 +17,7 @@ interface DragPinchRawDriver {
     //加速移动
     fun moveVelocity(velocityX: Float,velocityY:Float)
 
-    //停止惯性操作(时间线程)
+    //停止惯性操作(动画线程在操作)，只在down中调用
     fun stopFling()
 
     //只做绑定用
@@ -55,7 +55,7 @@ interface DragPinchRawDriver {
     //双击操作
     fun doubleClickAction(event: MotionEvent) = false
 
-    //滚动结束
+    //滚动结束（看是否超过边界，是否要回弹，或隐藏什么，或预处理）
     fun scrollEndAction(event: MotionEvent)
 
     //惯性结束(持续一段时间的操作，完全在动画中控制)
