@@ -44,6 +44,11 @@ class BmpUtils {
             return bmp
         }
 
+        //实际的边框可能是给定值的一半，或全部（扩展到矩形外面）
+        fun drawRectFrame(canvas: Canvas, rect: Rect, colorInt: Int, width: Float) {
+            rectDraw(canvas, strokePaint(colorInt, width), rect)
+        }
+
         private fun deltaCenterHeightFromFont(paint: Paint) =
                 paint.fontMetricsInt.let {
                     (it.top + it.bottom) / 2

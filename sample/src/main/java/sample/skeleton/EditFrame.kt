@@ -59,8 +59,8 @@ class DefaultEditFrame(ctx:Context, val action:(e:MoveHander)->Unit):FrameLayout
                 ViewGroup.LayoutParams.WRAP_CONTENT).apply {
             height = initRect.height()
             width = stroke
-            x = initRect.left.toFloat()
-            y = initRect.top.toFloat()
+            //x = initRect.left.toFloat()
+            //y = initRect.top.toFloat()
         }
         editTopView = TextView(ctx).apply {
             backgroundColor = Color.BLUE
@@ -69,8 +69,8 @@ class DefaultEditFrame(ctx:Context, val action:(e:MoveHander)->Unit):FrameLayout
                 ViewGroup.LayoutParams.WRAP_CONTENT).apply {
             height = stroke
             width = initRect.width()
-            x = initRect.left.toFloat()
-            y = initRect.top.toFloat()
+            //x = initRect.left.toFloat()
+            //y = initRect.top.toFloat()
         }
         addView(editLeftView, leftLayout)
         addView(editTopView, topLayout)
@@ -84,14 +84,14 @@ class DefaultEditFrame(ctx:Context, val action:(e:MoveHander)->Unit):FrameLayout
         val leftLayout = editLeftView.layoutParams.apply {
             width = stroke
             height = initRect.height()
-            x = 0F
-            y = 0F
+            //x = 0F
+            //y = 0F
         }
         val topLayout = editTopView.layoutParams.apply {
             height = stroke
             width = initRect.width()
-            x = 0F
-            y = 0F
+            //x = 0F
+            //y = 0F
         }
         editLeftView.layoutParams = leftLayout
         editTopView.layoutParams = topLayout
@@ -143,8 +143,8 @@ class DefaultEditFrame(ctx:Context, val action:(e:MoveHander)->Unit):FrameLayout
                 ViewGroup.LayoutParams.WRAP_CONTENT).apply {
             width = initRect.width()
             height = initRect.height()
-            x = origin.x
-            y = origin.y
+            //x = origin.x
+            //y = origin.y
         }
         host.addView(this, thisLayout)
 

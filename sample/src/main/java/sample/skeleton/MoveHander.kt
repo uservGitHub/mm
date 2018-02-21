@@ -6,6 +6,8 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.view.MotionEvent
 import android.view.View
+import org.jetbrains.anko.AnkoLogger
+import org.jetbrains.anko.info
 import sample.utils.EditDir
 import sample.utils.EditHand
 import sample.utils.EditXY
@@ -15,7 +17,9 @@ import sample.utils.SubViewUtils
  * Created by Administrator on 2018/2/19.
  */
 
-class MoveHander(val handType:EditHand, val initRect: Rect, val hitView:View, val moveView: View) {
+class MoveHander(val handType:EditHand, val initRect: Rect, val hitView:View, val moveView: View):AnkoLogger {
+    override val loggerTag: String
+        get() = "_MH"
     //moveView中的位置，moveView包含hitView
     val lastPt: PointF
     //var editLock: Boolean = false //未使用，默认可以编辑
@@ -68,7 +72,10 @@ class MoveHander(val handType:EditHand, val initRect: Rect, val hitView:View, va
         when (handType) {
         //region    各种情况（按需选用）
             EditHand.Left, EditHand.Right -> {
-                view.x = event.rawX - lastPt.x
+                //不能超限
+                var x = event.rawX - lastPt.x
+                view.x = if (x>=0) x else 0F
+
             }
             EditHand.Top, EditHand.Bottom -> {
                 view.y = event.rawY - lastPt.y

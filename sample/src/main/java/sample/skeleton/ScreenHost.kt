@@ -11,6 +11,9 @@ import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.info
 import sample.common.BackCell
 import sample.common.HostAnimation
+import sample.hander.AttachMent
+import sample.hander.HanderView
+import sample.hander.Size
 
 /**
  * Created by Administrator on 2018/2/15.
@@ -25,7 +28,8 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
     private val animationManager: ScreenAnimation
     //private val moveHandle: AdvMoveHanle
     //private val moveHandle: EditMoveHandle
-    private val moveHandle:DefaultEditFrame
+    //private val moveHandle:DefaultEditFrame
+    private val moveHandle: AttachMent
     private var visX: Int
     private var visY: Int
     private var shockX: Float
@@ -45,11 +49,20 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
         /*moveHandle = AdvMoveHanle(ctx).apply {
             setupLayout(this@ScreenHost)
         }*/
-
-        moveHandle = DefaultEditFrame(ctx,{e: MoveHander ->
+        /*moveHandle = DefaultEditFrame(ctx,{e: MoveHander ->
             info { e.lastPt }
         }).apply {
             setupLayout(this@ScreenHost, Rect(100,100,400,600))
+        }*/
+        moveHandle = HanderView(ctx).apply {
+            setupLayout(this@ScreenHost, Size(800,500))
+            locate(100F, 100F)
+            setOnLTCornerListener { canvasX, canvasY ->
+                info { "LTCorner:($canvasX,$canvasY)" }
+            }
+            setOnRBCornerListener { canvasX, canvasY ->
+                info { "RBCorner:($canvasX,$canvasY)" }
+            }
         }
     }
 
@@ -87,7 +100,8 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
         shockY = visY.toFloat()
         //info { "moveTo:($visX,$visY)" }
         //moveHandle.dump(x,y)
-        moveHandle.moveOffset(shockX, shockY)
+        //moveHandle.moveOffset(shockX, shockY)
+        moveHandle.upateVisPt(shockX, shockY)
         reDraw()
     }
 
@@ -97,7 +111,8 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
         visX = shockX.toInt()
         visY = shockY.toInt()
         //info { "moveOffset:$hostId($visX,$visY)" }
-        moveHandle.moveOffset(shockX, shockY)
+        //moveHandle.moveOffset(shockX, shockY)
+        moveHandle.upateVisPt(shockX, shockY)
         reDraw()
     }
 
@@ -127,12 +142,21 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
 
     override fun doubleClickAction(event: MotionEvent): Boolean {
         info { "$hostId,doubleClick" }
+        if (moveHandle.hasPt(event.x+shockX,event.y+shockY)){
+            moveHandle.setupLayout(this, Size(600,600))
+        }
         return true
     }
 
     override fun clickAction(event: MotionEvent): Boolean {
-        if (moveHandle.showing) moveHandle.hide()
-        else moveHandle.show()
+        /*if (moveHandle.showing) moveHandle.hide()
+        else moveHandle.show()*/
+
+        if (moveHandle.hasPt(event.x+shockX,event.y+shockY)){
+            if (moveHandle.showing) moveHandle.hide()
+            else moveHandle.show()
+        }
+
         //moveHandle.show()
         return true
     }
