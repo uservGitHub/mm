@@ -55,8 +55,8 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
             setupLayout(this@ScreenHost, Rect(100,100,400,600))
         }*/
         moveHandle = HanderView(ctx).apply {
-            setupLayout(this@ScreenHost, Size(800,500))
-            locate(100F, 100F)
+            setupLayout(this@ScreenHost, Size(400,400))
+            locate(-100F, -500F)
             setOnLTCornerListener { canvasX, canvasY ->
                 info { "LTCorner:($canvasX,$canvasY)" }
             }
@@ -179,4 +179,8 @@ class ScreenHost(ctx:Context,val backCell: BackCell):
     /*override fun hiting(event: MotionEvent): Boolean {
         return super.hiting(event)
     }*/
+
+    override fun follow(followed: Boolean) {
+        isFollow = followed
+    }
 }

@@ -5,9 +5,11 @@ import android.graphics.*
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
-import org.jetbrains.anko.AnkoLogger
-import org.jetbrains.anko.info
+import android.widget.*
+import org.jetbrains.anko.*
+import org.jetbrains.anko.sdk25.coroutines.onCheckedChange
+import org.jetbrains.anko.sdk25.coroutines.onClick
+import sample.skeleton.DragPinchRawDriver
 import sample.utils.BmpUtils
 
 /**
@@ -22,6 +24,8 @@ enum class HanderType {
 //endregion
 
 data class Size(val width: Int, val height: Int)
+
+
 
 //插件接口
 interface AttachMent{
@@ -134,14 +138,15 @@ class HanderView(ctx:Context):FrameLayout(ctx),AttachMent,AnkoLogger {
         }
         return hitingRBCorner
     }
+    //修改上下界 [1, size-2] 更符合像素范围
     private inline fun updateLTCorner(event: MotionEvent):Boolean{
         var changed = false
         val dx = event.x - lastPt.x
         val dy = event.y - lastPt.y
-        val minX = 0F
-        val maxX = size.width.toFloat() - lineWidth-lineLength
-        val minY = 0F
-        val maxY = size.height.toFloat()-lineWidth-lineLength
+        val minX = 1F
+        val maxX = (size.width-2).toFloat() - lineLength
+        val minY = 1F
+        val maxY = (size.height-2).toFloat()-lineLength
 
         //region    update x
         if (dx>0 && ptLTCorner.x<maxX){
@@ -183,10 +188,10 @@ class HanderView(ctx:Context):FrameLayout(ctx),AttachMent,AnkoLogger {
         var changed = false
         val dx = event.x - lastPt.x
         val dy = event.y - lastPt.y
-        val minX = lineWidth+lineLength
-        val maxX = size.width.toFloat()
-        val minY = lineWidth+lineLength
-        val maxY = size.height.toFloat()
+        val minX = lineLength
+        val maxX = (size.width-2).toFloat()
+        val minY = lineLength
+        val maxY = (size.height-2).toFloat()
 
         //region    update x
         if (dx>0 && ptRBCorner.x<maxX){
@@ -224,30 +229,35 @@ class HanderView(ctx:Context):FrameLayout(ctx),AttachMent,AnkoLogger {
 
         return changed
     }
-    private inline fun drawLTCorner(canvas: Canvas, pt: PointF, selected:Boolean) {
+    //修改画线 一通到底
+    private inline fun drawLTCorner(canvas: Canvas, pt: PointF, selected:Boolean, endPt:PointF) {
         val halfWidth = lineWidth / 2
         val linePaint = strokePaint(if (selected) SelectColor else DefaultColor, lineWidth)
 
         var x = pt.x
         var y = pt.y + halfWidth
-        canvas.drawLine(x, y, x + lineLength, y, linePaint)
+        //canvas.drawLine(x, y, x + lineLength, y, linePaint)
+        canvas.drawLine(x, y, endPt.x, y, linePaint)
         x = pt.x + halfWidth
         y = pt.y
-        canvas.drawLine(x, y, x, y + lineLength, linePaint)
+        //canvas.drawLine(x, y, x, y + lineLength, linePaint)
+        canvas.drawLine(x, y, x, endPt.y, linePaint)
         val rectF = RectF(0F,0F,sideLength,sideLength)
         rectF.offsetTo(pt.x+lineWidth, pt.y+lineWidth)
         canvas.drawRect(rectF, fillPaint(FillColor))
     }
-    private inline fun drawRBCorner(canvas: Canvas, pt: PointF, selected:Boolean) {
+    private inline fun drawRBCorner(canvas: Canvas, pt: PointF, selected:Boolean, begPt:PointF) {
         val halfWidth = lineWidth / 2
         val linePaint = strokePaint(if (selected) SelectColor else DefaultColor, lineWidth)
 
         var x = pt.x
         var y = pt.y - halfWidth
-        canvas.drawLine(x, y, x - lineLength, y, linePaint)
+        //canvas.drawLine(x, y, x - lineLength, y, linePaint)
+        canvas.drawLine(x, y, begPt.x, y, linePaint)
         x = pt.x - halfWidth
         y = pt.y
-        canvas.drawLine(x, y, x, y - lineLength, linePaint)
+        //canvas.drawLine(x, y, x, y - lineLength, linePaint)
+        canvas.drawLine(x, y, x, begPt.y, linePaint)
         val rectF = RectF(0F,0F,sideLength,sideLength)
         rectF.offsetTo(pt.x-lineWidth-sideLength, pt.y-lineWidth-sideLength)
         canvas.drawRect(rectF, fillPaint(FillColor))
@@ -292,15 +302,37 @@ class HanderView(ctx:Context):FrameLayout(ctx),AttachMent,AnkoLogger {
     private lateinit var size: Size
     private var isSetup = false
     private val originPt = PointF(0F, 0F)
-    val realSize:Size get() = size
+    private val testET:EditText
 
     init {
         setWillNotDraw(false)
+        //backgroundColor = Color.LTGRAY
         this.visibility = View.INVISIBLE
+
+        /*testET = EditText(ctx).apply {
+            left = 200
+            top = 200
+        }*/
+        testET = EditText(ctx)
+        addView(testET)
     }
 
+    //region    控件接口
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        //info { "getChildCount()=$childCount" }
+        val child = getChildAt(0)
+        info { "childSize:(${child.x},${child.y})(${child.width},${child.height})" }
+        val specWidth = ViewGroup.getChildMeasureSpec(0,0,300)
+        val specHeight = ViewGroup.getChildMeasureSpec(0,0,50)
+        child.measure(specWidth, specHeight)
         setMeasuredDimension(size.width, size.height)
+    }
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        val child = getChildAt(0)
+        val x = 200
+        val y = 200
+        child.layout(x,y,x+300, y+50)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -315,10 +347,10 @@ class HanderView(ctx:Context):FrameLayout(ctx),AttachMent,AnkoLogger {
         BmpUtils.drawRectFrame(canvas, frameRect, Color.BLUE, 10F)
 
         if (onLTCornerListener != null){
-            drawLTCorner(canvas, ptLTCorner, hitingLTCorner)
+            drawLTCorner(canvas, ptLTCorner, hitingLTCorner, ptRBCorner)
         }
         if (onRBCornerListener != null){
-            drawRBCorner(canvas, ptRBCorner, hitingRBCorner)
+            drawRBCorner(canvas, ptRBCorner, hitingRBCorner, ptLTCorner)
         }
     }
 
@@ -346,6 +378,11 @@ class HanderView(ctx:Context):FrameLayout(ctx),AttachMent,AnkoLogger {
                 if (onLTCornerListener != null && hitingLTCorner){
                     if(updateLTCorner(event)){
                         invalidate()
+                        val l = (ptLTCorner.x+sideLength).toInt()+20
+                        val t = (ptLTCorner.y+sideLength).toInt()+20
+                        val r = (ptRBCorner.x - sideLength).toInt()-20
+                        val b = (ptRBCorner.y - sideLength).toInt()-20
+                        testET.layout(l, t, r, b)
                     }
                     return true
                 }
@@ -374,6 +411,7 @@ class HanderView(ctx:Context):FrameLayout(ctx),AttachMent,AnkoLogger {
 
         return super.onTouchEvent(event)
     }
+    //endregion
 
     //region    AttachMent 接口
     override fun locate(x: Float, y: Float) {
@@ -428,3 +466,303 @@ class HanderView(ctx:Context):FrameLayout(ctx),AttachMent,AnkoLogger {
     }
     //endregion
 }
+
+//分割插件：
+//一般的插件外，增加分裂事件（完全复制，可关闭）
+//如何分裂（横纵），关闭哪一个，随动哪一个；及呈现由实现来决定
+//布局控制也由实现来控制
+interface SplitMent{
+
+/*    //是否分割成两部分
+    val isTwo: Boolean
+    //第一屏是否随动
+    val isFollowFirst: Boolean
+    //第二屏是否随动
+    val isFollowSecond: Boolean
+    //是否水平分割
+    val isHor: Boolean
+    //添加第一个
+    fun addFirst(firstView: DragPinchRawDriver, secondView:DragPinchRawDriver)
+    //分割(水平/垂直 分割)
+    fun split(horizontal:Boolean, action:(driver:DragPinchRawDriver)->Unit)
+    //是否第一屏
+    fun close(isFirst: Boolean, action:(driver:DragPinchRawDriver)->Unit)
+    //是否随动屏
+    fun follow(isFirst: Boolean, isFollow:Boolean)*/
+
+    //分裂，给定now，产出新的（如何复制）
+    //val onSplitListener:(now:DragPinchRawDriver)->DragPinchRawDriver
+    //要关闭的那个，可以做一些资源释放的工作
+    //val onCloseListener:(target:DragPinchRawDriver)->Unit
+
+    val showing: Boolean
+    fun show()
+    fun hide()
+    //fun hideDelayed()
+    fun setupLayout(view:ViewGroup, now: DragPinchRawDriver,
+                    onSplitListener:(now:DragPinchRawDriver)->DragPinchRawDriver,
+                    onCloseListener:(target:DragPinchRawDriver)->Unit)
+
+    fun destroyLayout()
+}
+class SplitView(ctx: Context):RelativeLayout(ctx),SplitMent{
+    private lateinit var host:ViewGroup
+    private var firstContent:DragPinchRawDriver? = null
+    private var secondContent:DragPinchRawDriver? = null
+    private lateinit var splitAction:(now:DragPinchRawDriver)->DragPinchRawDriver
+    private lateinit var closeAction:(target:DragPinchRawDriver)->Unit
+    private lateinit var container:LinearLayout
+
+    init {
+        visibility = View.INVISIBLE
+    }
+
+    override fun destroyLayout() {
+        host.removeView(this)
+    }
+    override val showing: Boolean
+        get() = this.visibility == View.VISIBLE
+
+    override fun show() {
+        this.visibility = View.VISIBLE
+    }
+
+    override fun hide() {
+        this.visibility = View.INVISIBLE
+    }
+
+    override fun setupLayout(view: ViewGroup, now: DragPinchRawDriver,
+                             onSplitListener:(now:DragPinchRawDriver)->DragPinchRawDriver,
+                             onCloseListener:(target:DragPinchRawDriver)->Unit) {
+        host = view
+        firstContent = now
+
+        splitAction = onSplitListener
+        closeAction = onCloseListener
+
+        //region    悬浮控制面板
+        val id1 = 1
+        val id2 = 2
+        val id3 = 3
+        val id4 = 4
+        val id5 = 5
+        val id6 = 6
+
+        val splitButton = Button(context).apply {
+            text = "垂直分裂"
+            id = id1
+            onClick {
+                secondContent = splitAction.invoke(firstContent!!)
+                container.apply {
+                    removeView(firstContent!!.host)
+                    orientation = android.widget.LinearLayout.HORIZONTAL
+                    addView(firstContent!!.host, verSplitLayout())
+                    addView(secondContent!!.host, verSplitLayout())
+                }
+            }
+        }
+        val btnLp = RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            addRule(RelativeLayout.ALIGN_PARENT_START, RelativeLayout.TRUE)
+        }
+        this.addView(splitButton, btnLp)
+        val followSetFirst = CheckBox(context).apply {
+            id = id2
+            text = "屏1随动"
+            isChecked = false
+            onCheckedChange { buttonView, isChecked ->
+                firstContent?.follow(isChecked)
+            }
+        }
+        val followFirstLp = RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            addRule(RelativeLayout.RIGHT_OF, splitButton.id)
+        }
+        this.addView(followSetFirst, followFirstLp)
+        val followSetSecond = CheckBox(context).apply {
+            id = id3
+            text = "屏2随动"
+            isChecked = false
+            onCheckedChange { buttonView, isChecked ->
+                secondContent?.follow(isChecked)
+            }
+        }
+        val followSecondLp = RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            addRule(RelativeLayout.RIGHT_OF, followSetFirst.id)
+        }
+        this.addView(followSetSecond, followSecondLp)
+
+        this.addView(Button(context).apply {
+            text = "关闭屏1"
+            id = id4
+            onClick {
+                /*secondContent = splitAction.invoke(firstContent!!)
+                container.addView(secondContent!!.host, horSplitLayout())*/
+                firstContent?.let{
+                    closeAction(it)
+                    container.removeView(it.host)
+                    //替代
+                    firstContent = secondContent
+                    secondContent = null
+                }
+
+            }
+        }
+                , RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            addRule(RelativeLayout.RIGHT_OF, id3)
+        })
+
+        this.addView(Button(context).apply {
+            text = "关闭屏2"
+            id = id5
+            onClick {
+                secondContent?.let {
+                    closeAction(it)
+                    container.removeView(it.host)
+                    secondContent = null
+                }
+            }
+        }
+                , RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            addRule(RelativeLayout.RIGHT_OF, id4)
+        })
+        this.addView(Button(context).apply {
+            text = "垂直分裂"
+            id = id6
+            onClick {
+                secondContent = splitAction.invoke(firstContent!!)
+                container.apply {
+                    removeView(firstContent!!.host)
+                    orientation = android.widget.LinearLayout.VERTICAL
+                    addView(firstContent!!.host, horSplitLayout())
+                    addView(secondContent!!.host, horSplitLayout())
+                }
+            }
+        }
+                , RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            addRule(RelativeLayout.RIGHT_OF, id5)
+        })
+        //endregion
+
+        setupOne(firstContent!!)
+        //val lp = LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT)
+        val lp = RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            setMargins(0,0,0,0)
+            addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
+        }
+        host.addView(this, lp)
+    }
+
+    private fun setupOne(now: DragPinchRawDriver){
+        val layout = RelativeLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT).apply {
+            setMargins(0,0,0,0)
+            addRule(RelativeLayout.ALIGN_PARENT_TOP)
+            addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
+            addRule(RelativeLayout.ALIGN_PARENT_START)
+            addRule(RelativeLayout.ALIGN_PARENT_END)
+        }
+        container = LinearLayout(context)
+        host.addView(container, layout)
+        container.apply {
+            orientation = LinearLayout.VERTICAL
+            addView(now.host, horSplitLayout())
+        }
+    }
+
+
+    private inline fun verSplitLayout() = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT).apply {
+        width = dip(0)
+        weight = 1F
+
+    }
+    private inline fun horSplitLayout() = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT).apply {
+        height = dip(0)
+        weight = 1F
+    }
+}
+
+/*class SplitView1(ctx: Context):RelativeLayout(ctx),SplitMent{
+    //在外层已经创建好了，不需要动态进行初始化
+    private lateinit var first:DragPinchRawDriver
+    private lateinit var second:DragPinchRawDriver
+    private lateinit var host:ViewGroup
+
+    override val showing: Boolean
+        get() = this.visibility == View.VISIBLE
+
+    override var isTwo: Boolean = false
+        private set
+
+    override var isHor: Boolean = false
+        private set
+
+    override var isFollowFirst: Boolean = false
+        private set
+
+    override var isFollowSecond: Boolean = false
+        private set
+
+    override fun addFirst(firstView: DragPinchRawDriver) {
+        first = firstView
+        //布局
+        val lp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT).apply {
+            width = dip(0)
+            weight = 1F
+        }
+        host.addView(first.host, lp)
+    }
+
+    override fun split(horizontal: Boolean, secondView: DragPinchRawDriver) {
+        if (isTwo){
+            return
+        }
+        second = secondView
+        isTwo = true
+
+        if (horizontal){
+            val lp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT).apply {
+                width = dip(0)
+                weight = 1F
+            }
+            first.host.layoutParams = lp
+            host.addView(second.host, lp)
+        }else{
+            val lp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT).apply {
+                height = dip(0)
+                weight = 1F
+            }
+            first.host.layoutParams = lp
+            host.addView(second.host, lp)
+        }
+    }
+
+    override fun close(isFirst: Boolean) {
+        if (!isTwo){
+            return
+        }
+
+        if (isFirst){
+            host.removeView(first.host)
+            first = second
+        }else{
+            host.removeView(second.host)
+        }
+        isTwo = false
+    }
+
+    override fun follow(isFirst: Boolean, isFollow: Boolean) {
+        if (!isTwo){
+            return
+        }
+        if (isFirst){
+            first.follow(isFollow)
+        }else{
+            second.follow(isFollow)
+        }
+    }
+}*/

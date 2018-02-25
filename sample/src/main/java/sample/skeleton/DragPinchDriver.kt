@@ -29,6 +29,9 @@ interface DragPinchRawDriver {
     //是否是按下来源
     var isDownSource: Boolean
 
+    //设置随动
+    fun follow(followed:Boolean)
+
     //事件是否在host内
     fun hiting(event: MotionEvent): Boolean {
         if (!canUse) {

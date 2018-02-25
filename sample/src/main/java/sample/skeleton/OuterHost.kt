@@ -1,25 +1,63 @@
 package sample.skeleton
 
 import android.content.Context
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import org.jetbrains.anko.*
 import android.view.ViewGroup
 import android.widget.*
 import org.jetbrains.anko.sdk25.coroutines.onClick
 import sample.common.BackCell
+import sample.hander.SplitMent
+import sample.hander.SplitView
 
 
 /**
  * Created by work on 2018/2/14.
  */
 
-class OuterHost(ctx:Context):LinearLayout(ctx),AnkoLogger {
-    private val host1: ScreenHost
-    private val host2: ScreenHost
+class OuterHost(ctx:Context):RelativeLayout(ctx),AnkoLogger{
+    override val loggerTag: String
+        get() = "_OH"
+    //private val host1: ScreenHost
+    //private val host2: ScreenHost
     private val dragPinchManager: DragPinchManager
     private val backCell:BackCell
+    private val splitMent:SplitMent
 
+    private fun doubleClick(event: MotionEvent):Boolean{
+        if (splitMent.showing){
+            splitMent.hide()
+        }else{
+            splitMent.show()
+        }
+        info { event }
+        return true
+    }
     init {
+        backCell = BackCell()
+        //list = MutableList(1,{ ScreenHost(ctx, backCell).apply { hostId = "-first" } })
+        val first = ScreenHost(ctx, backCell).apply { hostId = "-first" }
+        dragPinchManager = DragPinchManager(first, context).apply {
+            setDoublClickListener(this@OuterHost::doubleClick)
+            enable()
+        }
+        splitMent = SplitView(ctx).apply {
+            setupLayout(this@OuterHost, first,
+                    {now: DragPinchRawDriver ->
+                        ScreenHost(context, backCell).apply {
+                            hostId = "-second"
+                            dragPinchManager.addDriver(this)
+                        }
+                    },
+                    {target: DragPinchRawDriver ->
+                        dragPinchManager.removeDriver(target)
+                        info { "closeTarget:${target.isFollow}" }
+                    })
+        }
+    }
+    /*init {
         backCell = BackCell()
         host1 = ScreenHost(ctx, backCell).apply { hostId = "-first" }
         host2 = ScreenHost(ctx, backCell).apply { hostId = "-second" }
@@ -31,7 +69,9 @@ class OuterHost(ctx:Context):LinearLayout(ctx),AnkoLogger {
                 }
             })
         }
-        dragPinchManager = DragPinchManager(listOf(host1, host2),ctx).apply {
+
+        dragPinchManager = DragPinchManager(listOf(host1, host2),context).apply {
+            setDoublClickListener(this@OuterHost::doubleClick)
             enable()
         }
         try{
@@ -51,8 +91,5 @@ class OuterHost(ctx:Context):LinearLayout(ctx),AnkoLogger {
         }catch (e:Exception){
             info { e.toString() }
         }
-
-    }
-
-
+    }*/
 }

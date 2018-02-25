@@ -22,26 +22,41 @@ import sample.common.HostAnimation
 //滑动过程：moveOffset n 个, scrollEnd
 //惯性过程：滑动过程, movingEnd
 
-class DragPinchManager(val hostList:List<DragPinchRawDriver>, ctx:Context):
+class DragPinchManager(driver: DragPinchRawDriver, ctx:Context):
         View.OnTouchListener, GestureDetector.OnGestureListener,
         GestureDetector.OnDoubleTapListener,ScaleGestureDetector.OnScaleGestureListener, AnkoLogger {
 
     override val loggerTag: String
         get() = "_DPM"
 
+
     private var scrolling = false
     private var scaling = false
     private var enabled = false
+    private var doubleClickListener: ((event:MotionEvent)->Boolean)? = null
 
     private val gestureDetector: GestureDetector
     private val scaleGestureDetetor:ScaleGestureDetector
 
+    val hostList:MutableList<DragPinchRawDriver>
+
     init {
         gestureDetector = GestureDetector(ctx, this)
         scaleGestureDetetor = ScaleGestureDetector(ctx, this)
-        hostList.forEach {
+
+        driver.host.setOnTouchListener(this)
+        hostList = MutableList<DragPinchRawDriver>(1, {driver})
+        /*hostList.forEach {
             it.host.setOnTouchListener(this)
-        }
+        }*/
+    }
+    fun addDriver(driver: DragPinchRawDriver){
+        driver.host.setOnTouchListener(this)
+        hostList.add(driver)
+    }
+    fun removeDriver(driver: DragPinchRawDriver){
+        driver.host.setOnTouchListener(null)
+        hostList.remove(driver)
     }
 
     fun enable() {
@@ -52,15 +67,27 @@ class DragPinchManager(val hostList:List<DragPinchRawDriver>, ctx:Context):
         enabled = false
     }
 
+    fun setDoublClickListener(listener:(event:MotionEvent)->Boolean){
+        doubleClickListener = listener
+    }
+
     //region    OnDoubleTapListener
     override fun onDoubleTap(e: MotionEvent): Boolean {
+        //如果存在外层事件，优先处理外层事件
+        doubleClickListener?.let {
+            if(it.invoke(e)){
+                return true
+            }
+        }
+
         hostList.forEach {
             if (it.hiting(e)){
                 it.doubleClickAction(e)
                 return true
             }
         }
-        return false
+        //不再扩散
+        return true
     }
 
     override fun onDoubleTapEvent(e: MotionEvent?) = false
