@@ -59,3 +59,4 @@ class TestFirstHost(): AppCompatActivity(){
         ScreenUtils.fullScreen(this)
     }
 }
+
