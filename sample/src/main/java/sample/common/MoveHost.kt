@@ -47,6 +47,7 @@ class FirstHost(ctx:Context):RelativeLayout(ctx),AnkoLogger {
     }
     private fun velocity(startX:Int,startY:Int,velocityX:Int,velocityY:Int,minX:Int,maxX:Int,minY:Int,maxY:Int){
         //val scroller = animationManager.scroller
+        info { "velocityBeg" }
         fling = true
         scroller.fling(startX,startY,velocityX,velocityY,minX,maxX,minY,maxY)
     }
@@ -80,7 +81,7 @@ class FirstHost(ctx:Context):RelativeLayout(ctx),AnkoLogger {
         }
     }*/
     override fun computeScroll() {
-        info { "computeScroll()" }
+        //info { "computeScroll()" }
         super.computeScroll()
         if (isInEditMode) {
             return
@@ -90,15 +91,19 @@ class FirstHost(ctx:Context):RelativeLayout(ctx),AnkoLogger {
 
         //val scroller = animationManager.scroller
         if(scroller.computeScrollOffset()){
+            info { "scroller(${scroller.currX},${scroller.currY})" }
             moveTo(scroller.currX, scroller.currY)
             //pdfView.loadPageByOffset()
         }else if (fling){//animationManager.flinging
             //fling finished
             //animationManager.flinging = false
             fling = false
-            movingEnd()
+            info { "velocityEnd" }
+            //movingEnd()
             //pdfView.loadPages();
             //hideHandle()
+        }else{
+            info { "computeScroll()" }
         }
     }
     private inline fun reDraw() = invalidate()
