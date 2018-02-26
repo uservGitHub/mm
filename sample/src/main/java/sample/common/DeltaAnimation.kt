@@ -21,6 +21,7 @@ import org.jetbrains.anko.info
  */
 class HostAnimation(val host:View,
                     val moveTo: (x: Int, y: Int) -> Unit,
+                    val velocity: (startX:Int,startY:Int,velocityX:Int,velocityY:Int,minX:Int,maxX:Int,minY:Int,maxY:Int)->Unit,
                     val movingEnd:()->Unit):AnkoLogger{
     override val loggerTag: String
         get() = "_HA"
@@ -65,11 +66,14 @@ class HostAnimation(val host:View,
         info { "startFlingAnimation" }
         stopAll()
         flinging = true
-        val list = arrayListOf<Int>(startX,startY,velocityX,velocityY,minX,maxX,minY,maxY)
+        velocity(startX,startY,velocityX,velocityY,minX,maxX,minY,maxY)
+
+        /*val list = arrayListOf<Int>(startX,startY,velocityX,velocityY,minX,maxX,minY,maxY)
         info { list }
         scroller.fling(startX,startY,velocityX,velocityY,minX,maxX,minY,maxY)
+        info { "fling" }*/
     }
-    internal fun computeFling(){
+    /*internal fun computeFling(){
         if(scroller.computeScrollOffset()){
             moveTo(scroller.currX, scroller.currY)
             //pdfView.loadPageByOffset()
@@ -80,7 +84,7 @@ class HostAnimation(val host:View,
             //pdfView.loadPages();
             //hideHandle()
         }
-    }
+    }*/
     private fun hideHandle() {
         /*if (pdfView.getScrollHandle() != null) {
             pdfView.getScrollHandle().hideDelayed()

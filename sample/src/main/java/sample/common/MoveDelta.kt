@@ -1,5 +1,6 @@
 package sample.common
 
+import android.content.Context
 import android.graphics.Point
 import android.graphics.Rect
 import android.view.GestureDetector
@@ -15,6 +16,8 @@ import org.jetbrains.anko.info
  */
 
 class DragPinchManager(val animation: HostAnimation,
+                       val tarCtx:Context,
+                       val velocity: (startX:Int,startY:Int,velocityX:Int,velocityY:Int,minX:Int,maxX:Int,minY:Int,maxY:Int)->Unit,
                        val scrollEnd: ()->Unit,
                        val currentLeftTop: ()->Point,
                        val ptRange: ()->Rect,
@@ -27,7 +30,9 @@ class DragPinchManager(val animation: HostAnimation,
     private val gestureDetector: GestureDetector
 
     init {
-        gestureDetector = GestureDetector(animation.host.context, this)
+        /*gestureDetector = GestureDetector(animation.host.context, this)
+        animation.host.setOnTouchListener(this)*/
+        gestureDetector = GestureDetector(tarCtx, this)
         animation.host.setOnTouchListener(this)
     }
 
@@ -87,8 +92,10 @@ class DragPinchManager(val animation: HostAnimation,
     override fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
         val pt = currentLeftTop()
         val frame = ptRange()
-        animation.startFlingAnimation(pt.x, pt.y, -velocityX.toInt(), -velocityY.toInt(),
+        velocity(pt.x, pt.y, -velocityX.toInt(), -velocityY.toInt(),
                 frame.left, frame.right, frame.top, frame.bottom)
+        /*animation.startFlingAnimation(pt.x, pt.y, -velocityX.toInt(), -velocityY.toInt(),
+                frame.left, frame.right, frame.top, frame.bottom)*/
         return true
     }
 

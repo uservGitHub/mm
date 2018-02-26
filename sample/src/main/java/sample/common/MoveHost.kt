@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Point
+import android.widget.Button
+import android.widget.OverScroller
 import android.widget.RelativeLayout
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.info
@@ -22,8 +24,11 @@ class FirstHost(ctx:Context):RelativeLayout(ctx),AnkoLogger {
     private var visY:Int
     private var shockX:Float
     private var shockY:Float
+    private val scroller:OverScroller
+    private var fling = false
     init {
         setWillNotDraw(false)
+        scroller = OverScroller(context)
         visX = 0
         visY = 0
         shockX = 0F
@@ -31,11 +36,19 @@ class FirstHost(ctx:Context):RelativeLayout(ctx),AnkoLogger {
         backManager = BackCell().apply {
             //disabledEndToEnd(0,0)
         }
-        animationManager = HostAnimation(this, this::moveTo, this::movingEnd)
+        animationManager = HostAnimation(this, this::moveTo, this::velocity,this::movingEnd)
+        val btn = Button(ctx)
         dragPinchManager = DragPinchManager(animationManager,
+                btn.context,
+                this::velocity,
                 this::scrollEnd,this::currentPt,this::ptRange,this::moveOffset).apply {
             enable()
         }
+    }
+    private fun velocity(startX:Int,startY:Int,velocityX:Int,velocityY:Int,minX:Int,maxX:Int,minY:Int,maxY:Int){
+        //val scroller = animationManager.scroller
+        fling = true
+        scroller.fling(startX,startY,velocityX,velocityY,minX,maxX,minY,maxY)
     }
     override fun onDraw(canvas: Canvas) {
         if (isInEditMode()) {
@@ -53,12 +66,40 @@ class FirstHost(ctx:Context):RelativeLayout(ctx),AnkoLogger {
             visHeight = h
         }
     }
+    /*private inline fun computeFling(){
+        val scroller = animationManager.scroller
+        if(scroller.computeScrollOffset()){
+            moveTo(scroller.currX, scroller.currY)
+            //pdfView.loadPageByOffset()
+        }else if (animationManager.flinging){
+            //fling finished
+            animationManager.flinging = false
+            movingEnd()
+            //pdfView.loadPages();
+            //hideHandle()
+        }
+    }*/
     override fun computeScroll() {
+        info { "computeScroll()" }
         super.computeScroll()
         if (isInEditMode) {
             return
         }
-        animationManager.computeFling()
+        //animationManager.computeFling()
+        //computeFling()
+
+        //val scroller = animationManager.scroller
+        if(scroller.computeScrollOffset()){
+            moveTo(scroller.currX, scroller.currY)
+            //pdfView.loadPageByOffset()
+        }else if (fling){//animationManager.flinging
+            //fling finished
+            //animationManager.flinging = false
+            fling = false
+            movingEnd()
+            //pdfView.loadPages();
+            //hideHandle()
+        }
     }
     private inline fun reDraw() = invalidate()
     private inline fun moveTo(x: Int, y:Int){
