@@ -8,8 +8,11 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.view.*
 import android.view.animation.DecelerateInterpolator
+import android.widget.LinearLayout
 import android.widget.OverScroller
 import android.widget.RelativeLayout
+import org.jetbrains.anko.AnkoLogger
+import org.jetbrains.anko.dip
 import org.jetbrains.anko.info
 import sample.common.BackCell
 
@@ -282,7 +285,12 @@ class DragPinchManager(ctx:Context):
 }
 
 class ScreenHost(ctx: Context,val backCell: BackCell):
-        RelativeLayout(ctx),PinchDriver{
+        RelativeLayout(ctx),PinchDriver,AnkoLogger{
+    companion object {
+        private var createIndex = 0
+    }
+    override val loggerTag: String
+        get() = "_SH"
 
     private val animationManager: AnimationManager
     private var visX:Int
@@ -291,8 +299,11 @@ class ScreenHost(ctx: Context,val backCell: BackCell):
     private var shockY:Float
     private val scroller: OverScroller
     private var fling = false
+    private val tagId:String
 
     init {
+        createIndex++
+        tagId = "ID:$createIndex"
         setWillNotDraw(false)
         scroller = OverScroller(context)
         visX = 0
@@ -389,15 +400,17 @@ class ScreenHost(ctx: Context,val backCell: BackCell):
     }
 
     override fun doubleClickAction(e: MotionEvent): Boolean {
+        info { "doubleClick --> $tagId" }
         return true
     }
 
     override fun clickAction(e: MotionEvent): Boolean {
+        info { "click --> $tagId" }
         return true
     }
 }
 
-class OutHost(ctx: Context):RelativeLayout(ctx){
+class OutHost(ctx: Context):LinearLayout(ctx){
     private val dragPinchManager:DragPinchManager
     private val backCell:BackCell
 
@@ -409,10 +422,26 @@ class OutHost(ctx: Context):RelativeLayout(ctx){
             enable()
         }
 
-        val first = ScreenHost(ctx, backCell)
+        val first = ScreenHost(ctx, backCell).apply {
+            isFollow = true
+        }
         dragPinchManager.addDriver(first)
 
-        addView(first.host, LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT))
+        val second = ScreenHost(ctx, backCell).apply {
+            isFollow = true
+        }
+        dragPinchManager.addDriver(second)
+
+        orientation = LinearLayout.HORIZONTAL
+        addView(first, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.MATCH_PARENT).apply {
+            width = dip(0)
+            weight = 1F
+        })
+        addView(second, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.MATCH_PARENT).apply {
+            width = dip(0)
+            weight = 1F
+        })
     }
 }
