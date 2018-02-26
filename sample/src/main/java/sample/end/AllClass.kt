@@ -410,7 +410,7 @@ class ScreenHost(ctx: Context,val backCell: BackCell):
     }
 }
 
-class OutHost(ctx: Context):LinearLayout(ctx){
+class OutHost(ctx: Context):RelativeLayout(ctx){
     private val dragPinchManager:DragPinchManager
     private val backCell:BackCell
 
@@ -429,19 +429,26 @@ class OutHost(ctx: Context):LinearLayout(ctx){
 
         val second = ScreenHost(ctx, backCell).apply {
             isFollow = true
+            moveOffset(this@OutHost.width.toFloat()/2, 0F)
         }
         dragPinchManager.addDriver(second)
 
-        orientation = LinearLayout.HORIZONTAL
-        addView(first, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.MATCH_PARENT).apply {
-            width = dip(0)
-            weight = 1F
-        })
-        addView(second, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.MATCH_PARENT).apply {
-            width = dip(0)
-            weight = 1F
-        })
+        val linearLayout = LinearLayout(ctx).apply{
+            orientation = LinearLayout.HORIZONTAL
+            addView(first, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT).apply {
+                width = dip(0)
+                weight = 1F
+            })
+            addView(second, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT).apply {
+                width = dip(0)
+                weight = 1F
+            })
+        }
+
+        addView(linearLayout, LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT))
     }
 }
+
