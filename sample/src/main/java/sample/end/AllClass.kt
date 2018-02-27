@@ -6,14 +6,13 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.PointF
+import android.util.Log
 import android.view.*
 import android.view.animation.DecelerateInterpolator
-import android.widget.LinearLayout
-import android.widget.OverScroller
-import android.widget.RelativeLayout
-import org.jetbrains.anko.AnkoLogger
-import org.jetbrains.anko.dip
-import org.jetbrains.anko.info
+import android.widget.*
+import org.jetbrains.anko.*
+import org.jetbrains.anko.sdk25.coroutines.onClick
 import sample.common.BackCell
 
 /**
@@ -22,6 +21,15 @@ import sample.common.BackCell
  * 1 override fun computeScroll()
  *  invalidate() 时自动调用，
  */
+
+class Verbose{
+    companion object {
+        private const val TAG = "_ALL"
+        fun info(any: Any){
+            Log.v(TAG, "$any")
+        }
+    }
+}
 
 //region    AnimationManager
 /**
@@ -82,6 +90,7 @@ class AnimationManager(val moveTo:(x:Float, y:Float)->Unit,
 }
 //endregion
 
+//region    PinchDriver
 interface PinchDriver{
     val host:View
     var isDownSource:Boolean
@@ -112,7 +121,9 @@ interface PinchDriver{
     fun doubleClickAction(e: MotionEvent):Boolean
     fun clickAction(e: MotionEvent):Boolean
 }
+//endregion
 
+//region    DragPinchManager
 class DragPinchManager(ctx:Context):
         View.OnTouchListener, GestureDetector.OnGestureListener,
         GestureDetector.OnDoubleTapListener, ScaleGestureDetector.OnScaleGestureListener{
@@ -124,10 +135,10 @@ class DragPinchManager(ctx:Context):
 
     private val gestureDetector: GestureDetector
     private val scaleGestureDetetor:ScaleGestureDetector
+    //返回值表示是否继续进行子项触发(rawX屏幕坐标，x子控件内的坐标)
+    private var doubleClickListener: ((subEvent:MotionEvent)->Boolean)? = null
     //返回值表示是否继续进行子项触发
-    private var doubleClickListener: ((event:MotionEvent)->Boolean)? = null
-    //返回值表示是否继续进行子项触发
-    private var clickListener: ((event:MotionEvent)->Boolean)? = null
+    private var clickListener: ((subEvent:MotionEvent)->Boolean)? = null
 
 
     init {
@@ -283,7 +294,9 @@ class DragPinchManager(ctx:Context):
     override fun onSingleTapUp(e: MotionEvent?) = false
 
 }
+//endregion
 
+//region    ScreenHost
 class ScreenHost(ctx: Context,val backCell: BackCell):
         RelativeLayout(ctx),PinchDriver,AnkoLogger{
     companion object {
@@ -390,7 +403,11 @@ class ScreenHost(ctx: Context,val backCell: BackCell):
     override var canUse: Boolean = true
 
     override fun scrollEndAction(e: MotionEvent) {
-
+        //测试 动画
+        val targetPt = PointF(-width.toFloat()/2,-height.toFloat()/2)
+        if(shockX<targetPt.x || shockY<targetPt.y) {
+            animationManager.startXYAnimation(shockX, shockY, targetPt.x, targetPt.y)
+        }
     }
 
     override fun stopMoving() {
@@ -400,26 +417,43 @@ class ScreenHost(ctx: Context,val backCell: BackCell):
     }
 
     override fun doubleClickAction(e: MotionEvent): Boolean {
-        info { "doubleClick --> $tagId" }
+        //info { "doubleClick --> $tagId" }
+        Verbose.info("DbClick --> $tagId")
         return true
     }
 
     override fun clickAction(e: MotionEvent): Boolean {
-        info { "click --> $tagId" }
+        //info { "click --> $tagId" }
+        Verbose.info("Click --> $tagId")
         return true
     }
 }
+//endregion
 
 class OutHost(ctx: Context):RelativeLayout(ctx){
     private val dragPinchManager:DragPinchManager
     private val backCell:BackCell
+    private lateinit var linearLayout:LinearLayout
+    private lateinit var splitLine:TextView
 
     init {
         backCell = BackCell().apply {
-            enabledEndToEnd()
+            //测试 首尾相连
+            //enabledEndToEnd()
         }
         dragPinchManager = DragPinchManager(ctx).apply {
             enable()
+            //测试 外层事件
+            setClickListener { event: MotionEvent ->
+                //仍可以向子控件传递
+                Verbose.info("outClick:(${event.rawX.toInt()},${event.y.toInt()}) CanNext")
+                false
+            }
+            setDoubleClickListener { event: MotionEvent ->
+                //不可以向子控件传递
+                Verbose.info("outDbClick:(${event.x.toInt()},${event.y.toInt()}) NotNext")
+                true
+            }
         }
 
         val first = ScreenHost(ctx, backCell).apply {
@@ -433,12 +467,67 @@ class OutHost(ctx: Context):RelativeLayout(ctx){
         }
         dragPinchManager.addDriver(second)
 
-        val linearLayout = LinearLayout(ctx).apply{
+        splitLine = TextView(ctx).apply {
+            backgroundColor = Color.BLACK
+            onClick {
+                val oldOrientation = linearLayout.orientation
+                //先断开
+                linearLayout.removeView(first)
+                linearLayout.removeView(splitLine)
+                linearLayout.removeView(second)
+                //再连接
+                if (oldOrientation == LinearLayout.HORIZONTAL){
+                    Verbose.info("改为垂直布局")
+                    linearLayout.apply {
+                        orientation = LinearLayout.VERTICAL
+                        addView(first, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                            height = dip(0)
+                            weight = 1F
+                        })
+                        addView(splitLine, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                            height = dip(5)
+                        })
+                        addView(second, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                            height = dip(0)
+                            weight = 1F
+                        })
+                    }
+                }else{
+                    Verbose.info("改为水平布局")
+                    linearLayout.apply {
+                        orientation = LinearLayout.HORIZONTAL
+                        addView(first, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT).apply {
+                            width = dip(0)
+                            weight = 1F
+                        })
+                        addView(splitLine, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT).apply {
+                            width = dip(5)
+                        })
+                        addView(second, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT).apply {
+                            width = dip(0)
+                            weight = 1F
+                        })
+                    }
+                }
+            }
+        }
+
+        linearLayout = LinearLayout(ctx).apply{
             orientation = LinearLayout.HORIZONTAL
             addView(first, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.MATCH_PARENT).apply {
                 width = dip(0)
                 weight = 1F
+            })
+            addView(splitLine, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT).apply {
+                width = dip(5)
             })
             addView(second, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.MATCH_PARENT).apply {
