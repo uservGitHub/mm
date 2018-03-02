@@ -22,7 +22,7 @@ class StageUtils {
                 delay(500)
 
                 when (activity.localClassName) {
-                    MainActivity::class.java.simpleName -> startActivity(activity, Intent(activity, Stage_1_1::class.java), null)
+                    RxjavaActivity::class.java.simpleName -> startActivity(activity, Intent(activity, Stage_1_1::class.java), null)
                     Stage_1_1::class.java.simpleName -> startActivity(activity, Intent(activity, Stage_2_1::class.java), null)
                     //Stage_2_1::class.java.simpleName -> startActivity(activity, Intent(activity, TestActivity::class.java), null)
                 }
