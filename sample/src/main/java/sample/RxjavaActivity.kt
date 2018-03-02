@@ -3,15 +3,18 @@ package pdfbook.sample.stages
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import io.reactivex.*
 import io.reactivex.Observable
-import io.reactivex.ObservableOnSubscribe
 import io.reactivex.Observer
 import io.reactivex.disposables.Disposable
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.info
+import java.util.*
 
 /**
  * Created by work on 2018/3/2.
+ * http://blog.csdn.net/DeMonliuhui/article/details/77848691
+ * http://blog.csdn.net/qq_35064774/article/details/53045298
  */
 
 fun info(msg:()->Any) {
@@ -23,14 +26,14 @@ class RxjavaActivity:AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         info { "onCreate ===" }
-        test3()
+        test2()
     }
 
     companion object {
         /**
          * onSubscribe,on[Next,Error,Complete]
          */
-        fun test3() {
+        fun test1() {
             Observable.create<Int> {
                 try {
                     if (!it.isDisposed) {
@@ -49,6 +52,18 @@ class RxjavaActivity:AppCompatActivity() {
                     { info { "Error: ${it.message}" } },
                     { info { "Complete" } },
                     { info { "isDispose: ${it.isDisposed}" } }
+            )
+        }
+        fun test2(){
+            Flowable.create<String>({
+                it.onNext("first node")
+                it.onNext("second node")
+                it.onComplete()
+            }, BackpressureStrategy.BUFFER).subscribe(
+                    { info { "Next: $it" } },
+                    { info { "Error: ${it.message}" } },
+                    { info { "Complete" } },
+                    { info { "isDispose: ${it.request(2)}" } }
             )
         }
     }
