@@ -3,7 +3,7 @@ package sample.utils
 /**
  * Created by work on 2018/1/18.
  */
-class TimeUtils {
+class CalcTimeUtils {
     companion object {
         //计算毫秒数
         fun calcMs(task: () -> Unit, repeatCount: Int = 1): Long {
