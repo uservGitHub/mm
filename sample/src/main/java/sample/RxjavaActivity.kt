@@ -11,6 +11,7 @@ import android.widget.TextView
 import io.reactivex.*
 import io.reactivex.Observable
 import io.reactivex.Observer
+import io.reactivex.android.schedulers.AndroidSchedulers
 //import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -144,6 +145,7 @@ class RxjavaActivity:AppCompatActivity() {
     }
     private fun addItems(){
         Observable.fromIterable(collection).
+                observeOn(Schedulers.io()).
                 flatMap({
                     //Observable.fromArray(it.copy(id=id+100))
                     Thread.sleep(1000)
@@ -158,13 +160,16 @@ class RxjavaActivity:AppCompatActivity() {
                     LineMsg(it.id, name)
                 }).
                 repeat(2).
-                subscribeOn(Schedulers.computation()).
-                observeOn(Schedulers.computation()).  //AndroidSchedulers.mainThread()
+                doOnNext {
+                    info { "Next: ${it}" }
+                    //耗时操作的模拟应该是在发射端，不应该在这里
+                    Thread.sleep(1500)
+                }.
+                //subscribeOn(Schedulers.computation()).
+                observeOn(AndroidSchedulers.mainThread()).  //AndroidSchedulers.mainThread()
                 subscribe (
                         {
-                            info { "Next: ${it}" }
-                            //耗时操作的模拟应该是在发射端，不应该在这里
-                            Thread.sleep(1500)
+
                             runOnUiThread {
                                 line.addView(TextView(ctx).apply {
                                     text = it.toString()

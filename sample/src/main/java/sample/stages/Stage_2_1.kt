@@ -4,6 +4,7 @@ import android.view.Window
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.WindowManager
+import sample.project.AppConfigure
 import java.io.File
 
 /**
@@ -12,14 +13,17 @@ import java.io.File
  */
 
 class Stage_2_1:AppCompatActivity(){
-    private val appPdfPath = "gxd.book/atest"
+    private val appPdfPath: String
+    init {
+        appPdfPath = AppConfigure.PDFPATH
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         StorageUtils.initAppStroage(this, appPdfPath)
         if(savedInstanceState == null){
             if (checkStorage()) StageUtils.pass(this)
         }
-        StageUtils.defaultRender(this)
+        //StageUtils.defaultRender(this)
     }
     private fun checkStorage():Boolean{
         val inRoot = StorageUtils.inPdfRoot

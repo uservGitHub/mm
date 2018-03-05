@@ -8,6 +8,7 @@ import android.view.Gravity
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import org.jetbrains.anko.*
+import sample.project.ListFileActivity
 
 
 /**
@@ -18,13 +19,23 @@ class StageUtils {
     companion object {
         //region    页面流转
         fun pass(activity: Activity) {
+            when (activity.localClassName) {
+                Stage_1_1::class.java.simpleName -> startActivity(activity, Intent(activity, Stage_2_1::class.java), null)
+                Stage_2_1::class.java.simpleName -> {
+                    //startActivity(activity, Intent(activity, RxjavaActivity::class.java), null)
+                    startActivity(activity, Intent(activity, ListFileActivity::class.java), null)
+                }
+            }
+        }
+
+        fun passOld(activity: Activity) {
             launch {
                 delay(500)
 
                 when (activity.localClassName) {
-                    RxjavaActivity::class.java.simpleName -> startActivity(activity, Intent(activity, Stage_1_1::class.java), null)
+                    //RxjavaActivity::class.java.simpleName -> startActivity(activity, Intent(activity, Stage_1_1::class.java), null)
                     Stage_1_1::class.java.simpleName -> startActivity(activity, Intent(activity, Stage_2_1::class.java), null)
-                    //Stage_2_1::class.java.simpleName -> startActivity(activity, Intent(activity, TestActivity::class.java), null)
+                    Stage_2_1::class.java.simpleName -> startActivity(activity, Intent(activity, RxjavaActivity::class.java), null)
                 }
             }
 
@@ -36,7 +47,7 @@ class StageUtils {
             activity.verticalLayout {
                 textView() {
                     text = activity.localClassName
-                    textSize = 24F
+                    textSize = 34F
                     textColor = Color.BLUE
                     gravity = Gravity.CENTER
                 }.lparams(width = matchParent, height = matchParent)
