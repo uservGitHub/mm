@@ -37,11 +37,13 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.3.1'
     //compile "org.jetbrains.anko:anko-commons:$anko_version"
     compile "org.jetbrains.anko:anko:$anko_version"
-    compile 'io.reactivex.rxjava2:rxandroid:2.0.2'
+    //compile 'io.reactivex.rxjava2:rxandroid:2.0.2'
+    compile 'io.reactivex.rxjava2:rxandroid:$rxjava2_rxandroid'
     //rxjava轻型框架
-    compile 'io.reactivex.rxjava2:rxkotlin:2.2.0'
+    //compile 'io.reactivex.rxjava2:rxkotlin:2.2.0'
+    compile 'io.reactivex.rxjava2:rxkotlin:$rxjava2_rxkotlin'
     //compile 'io.reactivex.rxjava2:rxjava:2.1.10'
-
+    compile 'io.reactivex.rxjava2:rxjava:$rxjava2_rxjava'
     //provided 'org.androidannotations:androidannotations:4.0.0'
     //compile 'org.androidannotations:androidannotations-api:4.0.0'
 }
