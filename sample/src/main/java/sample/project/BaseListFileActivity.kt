@@ -6,6 +6,8 @@ import android.util.Log
 import android.widget.Button
 import com.shockwave.pdfium.PdfiumCore
 import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
+import io.reactivex.ObservableOnSubscribe
 import io.reactivex.disposables.Disposable
 import org.jetbrains.anko.button
 import org.jetbrains.anko.ctx
@@ -33,7 +35,7 @@ abstract class BaseListFileActivity:AppCompatActivity(){
     abstract fun listFiels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        tag(this::testfromIterable, "fromIterable")
+        tag(this::testcreate, "testcreate")
         core = PdfiumCore(ctx)
         verticalLayout {
             btnListFiles = button().apply {
@@ -65,6 +67,25 @@ abstract class BaseListFileActivity:AppCompatActivity(){
                         this::comSubscribe
                 )
     }
+    private fun testcreate(){
+        //Subscribe onNext:first onNext:two onComplete
+        Observable.create(object :ObservableOnSubscribe<String>{
+            override fun subscribe(p0: ObservableEmitter<String>) {
+                val items = arrayListOf<String>("one", "two")
+                items.forEach {
+                    p0.onNext(it)
+                }
+                p0.onComplete()
+            }
+        })
+                .subscribe(
+                        this::comNext,
+                        this::comError,
+                        this::comComplete,
+                        this::comSubscribe
+                )
+    }
+
 
     //region    com xxx
     private fun comNext(any: Any) = info { "onNext:$any" }
