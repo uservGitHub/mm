@@ -18,14 +18,70 @@ import java.io.File
 class ListFileActivity:BaseListFileActivity(){
     private var tick = 0L
     private var count = 0
-    private inline fun info(msg:()->Any) {
-        Log.v("LFA", "${msg()}")
-    }
+
 
     override fun listFiels() {
         myList()
     }
     private fun myList(){
+        val folders = File(dir)
+        Observable.create(object :ObservableOnSubscribe<File>{
+            override fun subscribe(p0: ObservableEmitter<File>) {
+                folders.listFiles().forEach {
+                    it.listFiles().filter { file ->
+                        file.name.toLowerCase().endsWith(".pdf")
+                    }.forEach { file->
+                        p0.onNext(file)
+                    }
+                }
+                p0.onComplete()
+            }
+        })
+
+                .observeOn(Schedulers.io())
+                .doOnNext {
+                    //info { "doNext:耗时操作" }
+                    //Thread.sleep(1000)
+                    val begTick = System.currentTimeMillis()
+                    val pfd = ParcelFileDescriptor.open(it, ParcelFileDescriptor.MODE_READ_ONLY)
+                    val pdfDocument = core.newDocument(pfd)
+                    try{
+                        core.openPage(pdfDocument, 0,1)
+                        val pageSize = core.getPageSize(pdfDocument, 0)
+                        val bmp = Bitmap.createBitmap(pageSize.width, pageSize.height,Bitmap.Config.RGB_565)
+                        core.renderPageBitmap(pdfDocument,bmp,0,0,0,bmp.width,bmp.height)
+                        bmp.recycle()
+                    }catch (e:Exception){
+                        info { "e:${e.message}" }
+                    }finally {
+                        core.closeDocument(pdfDocument)
+                        val endTick = System.currentTimeMillis()
+                        info { "span=${endTick-begTick},size=${it.length()/1000}" }
+                    }
+
+                }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        {
+                            //info { "Next:${it}" }
+                            count++
+                        },
+                        {
+                            info { "Error:${it.message}" }
+                        },
+                        {
+                            val curTick = System.currentTimeMillis()
+                            btnListFiles.text = "${curTick-tick}"
+                            info { "Complete,tick=$curTick\ttimespan=${curTick - tick},count=$count" }
+                        },
+                        {
+                            tick = System.currentTimeMillis()
+                            count = 0
+                            info { "Subscribe,tick=$tick" }
+                        }
+                )
+    }
+    private fun myList3(){
         val folders = File(dir)
         Observable.create(object :ObservableOnSubscribe<File>{
             override fun subscribe(p0: ObservableEmitter<File>) {
