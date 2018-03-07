@@ -1,0 +1,33 @@
+{
+  "buildFiles": [
+    "E:\\bLog\\mm\\pdfium\\src\\main\\jni\\Android.mk",
+    "E:\\bLog\\mm\\pdfium\\src\\main\\jni\\Application.mk"
+  ],
+  "cleanCommands": [
+    "C:\\NospaceProgram\\AppData\\Local\\Android\\sdk\\ndk-bundle\\ndk-build.cmd NDK_PROJECT_PATH\u003dnull APP_BUILD_SCRIPT\u003dE:\\bLog\\mm\\pdfium\\src\\main\\jni\\Android.mk NDK_APPLICATION_MK\u003dE:\\bLog\\mm\\pdfium\\src\\main\\jni\\Application.mk APP_ABI\u003darmeabi-v7a NDK_ALL_ABIS\u003darmeabi-v7a NDK_DEBUG\u003d0 APP_PLATFORM\u003dandroid-14 NDK_OUT\u003dE:/bLog/mm/pdfium/build/intermediates/ndkBuild/release/obj NDK_LIBS_OUT\u003dE:\\bLog\\mm\\pdfium\\build\\intermediates\\ndkBuild\\release\\lib clean"
+  ],
+  "libraries": {
+    "jniPdfium-release-armeabi-v7a": {
+      "buildCommand": "C:\\NospaceProgram\\AppData\\Local\\Android\\sdk\\ndk-bundle\\ndk-build.cmd NDK_PROJECT_PATH\u003dnull APP_BUILD_SCRIPT\u003dE:\\bLog\\mm\\pdfium\\src\\main\\jni\\Android.mk NDK_APPLICATION_MK\u003dE:\\bLog\\mm\\pdfium\\src\\main\\jni\\Application.mk APP_ABI\u003darmeabi-v7a NDK_ALL_ABIS\u003darmeabi-v7a NDK_DEBUG\u003d0 APP_PLATFORM\u003dandroid-14 NDK_OUT\u003dE:/bLog/mm/pdfium/build/intermediates/ndkBuild/release/obj NDK_LIBS_OUT\u003dE:\\bLog\\mm\\pdfium\\build\\intermediates\\ndkBuild\\release\\lib E:/bLog/mm/pdfium/build/intermediates/ndkBuild/release/obj/local/armeabi-v7a/libjniPdfium.so",
+      "toolchain": "toolchain-armeabi-v7a",
+      "abi": "armeabi-v7a",
+      "artifactName": "jniPdfium",
+      "files": [
+        {
+          "src": "E:\\bLog\\mm\\pdfium\\src\\main\\jni\\src\\mainJNILib.cpp",
+          "flags": "\"-gcc-toolchain\" \"C:/NospaceProgram/AppData/Local/Android/sdk/ndk-bundle/build//../toolchains/arm-linux-androideabi-4.9/prebuilt/windows-x86_64\" \"-fpic\" \"-ffunction-sections\" \"-funwind-tables\" \"-fstack-protector-strong\" \"-Wno-invalid-command-line-argument\" \"-Wno-unused-command-line-argument\" \"-no-canonical-prefixes\" \"-fno-integrated-as\" \"-g\" \"-target\" \"armv7-none-linux-androideabi\" \"-march\u003darmv7-a\" \"-mfloat-abi\u003dsoftfp\" \"-mfpu\u003dvfpv3-d16\" \"-fno-exceptions\" \"-fno-rtti\" \"-mthumb\" \"-Os\" \"-DNDEBUG\" \"-IE:/bLog/mm/pdfium/src/main/jni/include\" \"-IC:/NospaceProgram/AppData/Local/Android/sdk/ndk-bundle/build//../sources/cxx-stl/gnu-libstdc++/4.9/include\" \"-IC:/NospaceProgram/AppData/Local/Android/sdk/ndk-bundle/build//../sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include\" \"-IC:/NospaceProgram/AppData/Local/Android/sdk/ndk-bundle/build//../sources/cxx-stl/gnu-libstdc++/4.9/include/backward\" \"-IE:/bLog/mm/pdfium/src/main/jni\" \"-DANDROID\" \"-DHAVE_PTHREADS\" \"-Wa,--noexecstack\" \"-Wformat\" \"-Werror\u003dformat-security\" \"-fexceptions\" \"--sysroot\" \"C:/NospaceProgram/AppData/Local/Android/sdk/ndk-bundle/build//../platforms/android-14/arch-arm\""
+        }
+      ],
+      "output": "E:\\bLog\\mm\\pdfium\\build\\intermediates\\ndkBuild\\release\\obj\\local\\armeabi-v7a\\libjniPdfium.so"
+    }
+  },
+  "toolchains": {
+    "toolchain-armeabi-v7a": {
+      "cppCompilerExecutable": "C:\\NospaceProgram\\AppData\\Local\\Android\\sdk\\ndk-bundle\\build\\..\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe"
+    }
+  },
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

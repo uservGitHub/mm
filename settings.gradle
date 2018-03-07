@@ -1,2 +1,3 @@
 include ':lib-book'
+include ':pdfium'
 include ':sample'
