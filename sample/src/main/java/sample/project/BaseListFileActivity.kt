@@ -14,6 +14,10 @@ import org.jetbrains.anko.ctx
 import org.jetbrains.anko.sdk25.coroutines.onClick
 import org.jetbrains.anko.verticalLayout
 import pdfbook.sample.stages.StorageUtils
+import io.reactivex.schedulers.Schedulers
+import io.reactivex.Flowable
+
+
 
 /**
  * Created by Administrator on 2018/3/5.
@@ -26,16 +30,18 @@ abstract class BaseListFileActivity:AppCompatActivity(){
     protected lateinit var btnListFiles:Button
     protected val dir = StorageUtils.inPdfRoot
     protected lateinit var core: PdfiumCore
-    protected inline fun tag(action:()->Unit, tagName:String){
+    protected inline fun tag(action:(preFix:String)->Unit, tagName:String){
         info { "\nBegin: $tagName" }
-        action.invoke()
+        action.invoke("==>")
         info { "End: $tagName\n" }
     }
+    protected var printPreFix = ""
 
     abstract fun listFiels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        tag(this::testcreate, "testcreate")
+        //tag(this::testcreate, "testcreate")
+        tag(this::testParallel, "testParallel")
         core = PdfiumCore(ctx)
         verticalLayout {
             btnListFiles = button().apply {
@@ -67,7 +73,8 @@ abstract class BaseListFileActivity:AppCompatActivity(){
                         this::comSubscribe
                 )
     }
-    private fun testcreate(){
+    private fun testcreate(preFix: String = ""){
+        printPreFix = preFix
         //Subscribe onNext:first onNext:two onComplete
         Observable.create(object :ObservableOnSubscribe<String>{
             override fun subscribe(p0: ObservableEmitter<String>) {
@@ -85,12 +92,30 @@ abstract class BaseListFileActivity:AppCompatActivity(){
                         this::comSubscribe
                 )
     }
-
+    var parallelTick = 0L
+    private fun testParallel(preFix: String = ""){
+        info { "BeginThreadId:${Thread.currentThread().id}" }
+        parallelTick = System.currentTimeMillis()
+        Flowable.range(1, 10)
+                .flatMap { v ->
+                    Flowable.just(v)
+                            .subscribeOn(Schedulers.io())
+                            .map<Int> {
+                                //按CPU核的数量启动
+                                info { "MapThreadId:${Thread.currentThread().id}" }
+                                //模拟耗时
+                                Thread.sleep(2000)
+                                return@map it*it
+                            }
+                }
+                .blockingSubscribe(::comNextTick)
+    }
 
     //region    com xxx
-    private fun comNext(any: Any) = info { "onNext:$any" }
-    private fun comError(error: Throwable) = info { "onError:${error.message}" }
-    private fun comComplete()=info { "onComplete" }
-    private fun comSubscribe(scribe:Disposable) = info { "Subscribe" }
+    private fun comNext(any: Any) = info { "${printPreFix}onNext:$any" }
+    private fun comNextTick(any: Any) = info { "${printPreFix}[${System.currentTimeMillis()-parallelTick}]onNext:$any" }
+    private fun comError(error: Throwable) = info { "${printPreFix}onError:${error.message}" }
+    private fun comComplete()=info { "${printPreFix}onComplete" }
+    private fun comSubscribe(scribe:Disposable) = info { "${printPreFix}Subscribe" }
     //endregion
 }
