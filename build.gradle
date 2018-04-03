@@ -1,10 +1,11 @@
 
 buildscript {
-    ext.kotlin_version = '1.2.10'
+    //2018-4-3 下面4条全部最新
+    ext.kotlin_version = '1.2.31'
     ext.anko_version = '0.10.4'
-    //ext.rxkotlin_version = '2.2.0'
     ext.rxandroid_version = '2.0.2'
-    ext.rxjava_version = '2.1.10'
+    ext.rxjava_version = '2.1.12'
+    //ext.rxkotlin_version = '2.2.0'
     repositories {
         jcenter()
     }

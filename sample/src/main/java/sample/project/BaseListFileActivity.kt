@@ -16,7 +16,7 @@ import org.jetbrains.anko.verticalLayout
 import pdfbook.sample.stages.StorageUtils
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.Flowable
-
+import sample.Final.AppTick
 
 
 /**
@@ -40,6 +40,7 @@ abstract class BaseListFileActivity:AppCompatActivity(){
     abstract fun listFiels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppTick.test_infoTick()
         //tag(this::testcreate, "testcreate")
         tag(this::testParallel, "testParallel")
         core = PdfiumCore(ctx)
