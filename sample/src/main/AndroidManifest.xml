@@ -9,11 +9,13 @@
 		<!--<activity android:name=".TestSimpleHost"
 			android:configChanges="keyboardHidden|orientation|screenSize"
 			android:windowSoftInputMode="adjustNothing|stateAlwaysHidden"	/>-->
-		<activity android:name="sample.project.ListFileActivity"/>
+		<!--<activity android:name="sample.project.ListFileActivity"/>-->
 		<activity android:name=".Stage_2_1"/>
-		<activity android:name=".RxjavaActivity"/>
+		<activity android:name=".Stage_1_1"/>
+		<activity android:name="sample.Final.listfiles.ListfilesActivity"/>
+		<!--<activity android:name=".RxjavaActivity"/>-->
 		<activity
-			android:name=".Stage_1_1"
+			android:name=".BootstrapActivity"
 			android:configChanges="keyboardHidden|orientation|screenSize"
 			android:windowSoftInputMode="adjustNothing|stateAlwaysHidden">
 			<intent-filter>

@@ -8,6 +8,7 @@ import android.view.Gravity
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import org.jetbrains.anko.*
+import sample.Final.listfiles.ListfilesActivity
 import sample.project.ListFileActivity
 
 
@@ -23,8 +24,10 @@ class StageUtils {
                 Stage_1_1::class.java.simpleName -> startActivity(activity, Intent(activity, Stage_2_1::class.java), null)
                 Stage_2_1::class.java.simpleName -> {
                     //startActivity(activity, Intent(activity, RxjavaActivity::class.java), null)
-                    startActivity(activity, Intent(activity, ListFileActivity::class.java), null)
+                    //startActivity(activity, Intent(activity, ListFileActivity::class.java), null)
+                    startActivity(activity, Intent(activity, ListfilesActivity::class.java), null)
                 }
+                else -> startActivity(activity, Intent(activity, Stage_1_1::class.java), null)
             }
         }
 
