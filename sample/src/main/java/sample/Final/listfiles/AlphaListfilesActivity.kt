@@ -2,6 +2,7 @@ package sample.Final.listfiles
 
 import android.content.Context
 import android.os.ParcelFileDescriptor
+import android.util.Log
 import android.widget.Toast
 import io.reactivex.Flowable
 import io.reactivex.Observable
@@ -9,6 +10,7 @@ import io.reactivex.Scheduler
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import sample.Final.AppTick
+import sample.Final.LogBuilder
 import java.io.File
 
 /**
@@ -19,6 +21,7 @@ open class AlphaListfilesActivity:BaseListfilesActivity(){
         val root = dirRoot
         val folder = File(root)
         val p0 = SubscribeItem()
+        val p1 = LogBuilder()
 
         bindBtnFn("AllFiles") {
             //AppTick.infoTick("${folder.name},${folder.canRead()}")
@@ -35,6 +38,7 @@ open class AlphaListfilesActivity:BaseListfilesActivity(){
                 Flowable.just(pdf)
             }*/
         }
+
         bindBtnFn("AllPdfs") {
             val root = dirRoot
             val folder = File(root)
@@ -56,6 +60,7 @@ open class AlphaListfilesActivity:BaseListfilesActivity(){
             //pdfSource.blockingSubscribe(p0::next,p0::error,p0::complete)
             pdfSource.blockingSubscribe({}, {}, p0::complete)
         }
+
         bindBtnFn("AllPdfsSync") {
             val root = dirRoot
             val folder = File(root)
@@ -72,15 +77,36 @@ open class AlphaListfilesActivity:BaseListfilesActivity(){
             p0.reset()
             pdfSource.blockingSubscribe({}, {}, p0::complete)
         }
+
+        bindBtnFn("LogBuilder"){
+            val fileSource = Observable.fromIterable(
+                    folder.listFiles()
+                            .filter { it.isDirectory }
+                            .flatMap { it.listFiles().filter { file -> file.name.toLowerCase().endsWith(".pdf") } }
+            )
+            p1.reset("Log", true, true)
+            fileSource.subscribe(p1::next, p1::error, p1::complete)
+        }
+        bindBtnFn("_LogB"){
+            Log.v("_LogB", p1.dump)
+        }
+        bindBtnFn("dump"){
+            updateDump(p1.dump)
+        }
     }
 
-    class SubscribeItem(){
+    /**
+     * isLogv 默认不输出至Logv（特指next）
+     */
+    class SubscribeItem(var isLogv:Boolean = false){
         private var tick = 0L
         private var nextCount = 0
         private lateinit var _consumer:Disposable
         val consumer:Disposable get() = _consumer
         fun next(t:Any){
-            AppTick.infoTick(t)
+            if (isLogv){
+                AppTick.infoTick(t)
+            }
             nextCount++
         }
         fun error(t:Throwable){

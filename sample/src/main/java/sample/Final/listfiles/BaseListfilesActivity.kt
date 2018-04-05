@@ -1,9 +1,13 @@
 package sample.Final.listfiles
 
 import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.text.method.ScrollingMovementMethod
+import android.view.Gravity
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import org.jetbrains.anko.*
 import org.jetbrains.anko.sdk25.coroutines.onClick
@@ -21,12 +25,18 @@ abstract class BaseListfilesActivity:AppCompatActivity(){
     //region    布局要求
     protected lateinit var btnPanel:LinearLayout
     protected lateinit var contentPanel:LinearLayout
+    private lateinit var tbDump:TextView
+
     //必须使用bindBtnFn进行添加
     protected abstract fun layoutSetup()
     protected fun bindBtnFn(title:String, code:()->Unit){
         btnList.add(BtnItem(title, code))
     }
     //endregion
+
+    fun updateDump(text:String){
+        tbDump.text = text
+    }
 
     //region    业务要求
     protected var dirRoot = StorageUtils.inPdfRoot
@@ -77,6 +87,13 @@ abstract class BaseListfilesActivity:AppCompatActivity(){
             contentPanel = linearLayout{
                 orientation = LinearLayout.VERTICAL
                 backgroundColor = Color.GREEN
+
+                tbDump = textView(){
+                    textSize = 22F
+                    gravity = Gravity.LEFT
+                    typeface = Typeface.MONOSPACE
+                    movementMethod = ScrollingMovementMethod.getInstance()
+                }.lparams(matchParent, matchParent)
             }.lparams(matchParent, 0, 1F)
         }
         //endregion

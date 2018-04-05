@@ -10,7 +10,7 @@ import io.reactivex.disposables.Disposable
  * 不加锁，无输出流，无打印的情况下，对程序影响最小
  */
 
-class LogBuilder(val tag:String = "_LogB") {
+class LogBuilder(val tag:String = "_LogB",val end:(()->Unit)?=null) {
 
     private var tick = 0L
     private var nextCount = 0
@@ -44,7 +44,7 @@ class LogBuilder(val tag:String = "_LogB") {
         if (isFlow) {
             //序号从0开始，默认4位宽度右对齐
             //五个空格[序号] [xxms]信息
-            val flow = "     [${nextCount.no4()}] [${System.currentTimeMillis() - tick}ms]$t\n"
+            val flow = "  [${nextCount.no2()} | ${System.currentTimeMillis() - tick}ms]$t\n"
             sb.append(flow)
             if (isLogv) {
                 Log.v(tag, flow.substring(0, flow.length - 1))
@@ -54,41 +54,43 @@ class LogBuilder(val tag:String = "_LogB") {
     }
 
     /**
-     * -->X [数量] [span ms]异常信息
+     * --> [数量 | span ms]异常信息
      */
     fun error(t: Throwable) {
-        val flowBreak = "-->X [${nextCount.no4()}] [${System.currentTimeMillis() - tick}ms]${t.message!!}\n\n"
+        val flowBreak = "> [${nextCount.no2()} | ${System.currentTimeMillis() - tick}ms]${t.message!!}\n\n"
         sb.append(flowBreak)
+        end?.invoke()
         if (isLogv) {
             Log.v(tag, flowBreak.substring(0, flowBreak.length - 1))
         }
     }
 
     /**
-     * -->| [数量] [span ms]completed
+     * --> [数量 | span ms]completed
      */
     fun complete() {
-        val flowComplete = "-->| [${nextCount.no4()}] [${System.currentTimeMillis() - tick}ms]completed\n\n"
+        val flowComplete = "> [${nextCount.no2()} | ${System.currentTimeMillis() - tick}ms]completed\n\n"
         sb.append(flowComplete)
+        end?.invoke()
         if (isLogv) {
             Log.v(tag, flowComplete.substring(0, flowComplete.length - 1))
         }
     }
 
     private inline fun headTitle(title: String) {
-        val headTxt = "-->O [=$title=]\n"
+        val headTxt = ">>[=$title=]\n"
         sb.append(headTxt)
         if (isLogv) {
             Log.v(tag, headTxt.substring(0, headTxt.length - 1))
         }
     }
 
-    //默认4位宽度右对齐
-    protected inline fun Int.no4(): String {
+    //默认4位宽度右对齐，修改成2位宽度
+    protected inline fun Int.no2(): String {
         return when (this) {
-            in 0..9 -> "   $this"
-            in 10..99 -> "  $this"
-            in 100..999 -> " $this"
+            in 0..9 -> " $this"
+            //in 10..99 -> "  $this"
+            //in 100..999 -> " $this"
             else -> this.toString()
         }
     }
