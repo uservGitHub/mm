@@ -10,11 +10,12 @@ import io.reactivex.disposables.Disposable
  * 不加锁，无输出流，无打印的情况下，对程序影响最小
  */
 
-class LogBuilder(val tag:String = "_LogB",val end:(()->Unit)?=null) {
+class LogBuilder(val tag:String = "_LogB",val busEnd:(()->Unit)?=null) {
 
     private var tick = 0L
     private var nextCount = 0
     private val sb = StringBuilder(10 * 1024)   //10KB
+    private lateinit var endAction:(String)->Unit
 
     protected var isLogv: Boolean = false
         private set
@@ -26,9 +27,10 @@ class LogBuilder(val tag:String = "_LogB",val end:(()->Unit)?=null) {
     /**
      * 默认最少最简原则（不记录中间流，不打印LogV）
      */
-    fun reset(title: String, flow: Boolean = false, logv: Boolean = false) {
+    fun reset(title: String, flow: Boolean = false, logv: Boolean = false, end:(String)->Unit) {
         isFlow = flow
         isLogv = logv
+        endAction = end
 
         sb.delete(0, sb.length)
         headTitle(title)
@@ -59,7 +61,9 @@ class LogBuilder(val tag:String = "_LogB",val end:(()->Unit)?=null) {
     fun error(t: Throwable) {
         val flowBreak = "> [${nextCount.no2()} | ${System.currentTimeMillis() - tick}ms]${t.message!!}\n\n"
         sb.append(flowBreak)
-        end?.invoke()
+
+        endAction.invoke(dump)
+        busEnd?.invoke()
         if (isLogv) {
             Log.v(tag, flowBreak.substring(0, flowBreak.length - 1))
         }
@@ -71,7 +75,9 @@ class LogBuilder(val tag:String = "_LogB",val end:(()->Unit)?=null) {
     fun complete() {
         val flowComplete = "> [${nextCount.no2()} | ${System.currentTimeMillis() - tick}ms]completed\n\n"
         sb.append(flowComplete)
-        end?.invoke()
+
+        endAction.invoke(dump)
+        busEnd?.invoke()
         if (isLogv) {
             Log.v(tag, flowComplete.substring(0, flowComplete.length - 1))
         }
