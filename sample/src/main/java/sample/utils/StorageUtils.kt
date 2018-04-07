@@ -42,7 +42,7 @@ class StorageUtils{
             }
         val inPdfRoot: String
             get() = "$_inMemory/$_appPdfPath"
-        fun subDirs(dir:String) = File(dir).list { dir, name -> dir.isDirectory }
+        fun subDirs(dir:String) = File(dir).list { subDir, _ -> subDir.isDirectory }
         fun pdfFilenameFromDir(dir:String) =
                 File(dir).listFiles { file ->
                     file.isFile && file.canRead() && file.name.endsWith(".pdf", true) }.map { it.absolutePath }

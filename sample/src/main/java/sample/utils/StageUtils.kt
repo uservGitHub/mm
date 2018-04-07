@@ -31,19 +31,6 @@ class StageUtils {
             }
         }
 
-        fun passOld(activity: Activity) {
-            launch {
-                delay(500)
-
-                when (activity.localClassName) {
-                    //RxjavaActivity::class.java.simpleName -> startActivity(activity, Intent(activity, Stage_1_1::class.java), null)
-                    Stage_1_1::class.java.simpleName -> startActivity(activity, Intent(activity, Stage_2_1::class.java), null)
-                    Stage_2_1::class.java.simpleName -> startActivity(activity, Intent(activity, RxjavaActivity::class.java), null)
-                }
-            }
-
-        }
-
         //endregion
         //region    默认UI呈现，类名称
         fun defaultRender(activity: Activity, autoPass: Boolean = false) {

@@ -11,12 +11,23 @@ import org.reactivestreams.Subscription
  * 不加锁，无输出流，无打印的情况下，对程序影响最小
  */
 
-class LogBuilder(val tag:String = "_LogB", val busEnd:(()->Unit)?=null) {
+class LogBuilder(val tag:String = "_LogB") {
 
     private var tick = 0L
     private var nextCount = 0
     private val sb = StringBuilder(10 * 1024)   //10KB
     private var endAction: (() -> Unit)? = null
+    /**
+     * 运行的过程中，不可以更新
+     */
+    var busEnd:(()->Unit)? = null
+        set(value) {
+            val running = (disposer == null && subscriptor == null)
+            if (running) {
+                //可以更新
+                field = value
+            }
+        }
 
     protected var isLogv: Boolean = false
         private set
@@ -32,6 +43,7 @@ class LogBuilder(val tag:String = "_LogB", val busEnd:(()->Unit)?=null) {
         private set
     var subscriptor: Subscription? = null
         private set
+
 
     /**
      * 开关控制

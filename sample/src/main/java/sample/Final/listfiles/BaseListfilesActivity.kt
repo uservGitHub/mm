@@ -43,6 +43,12 @@ abstract class BaseListfilesActivity:AppCompatActivity() {
         tbDump.text = text
     }
 
+    fun appendUiDump(text: String){
+        runOnUiThread {
+            tbDump.append(text)
+        }
+    }
+
     fun appendDump(text: String) {
         tbDump.append(text)
     }
@@ -62,6 +68,8 @@ abstract class BaseListfilesActivity:AppCompatActivity() {
         private set
     protected var isFlow = false
         private set
+    protected var isBreak = false
+        private set
     //endregion
 
     //region    UI控制
@@ -75,7 +83,7 @@ abstract class BaseListfilesActivity:AppCompatActivity() {
         }
     }
     //释放面板
-    protected val releaseBtns: () -> Unit = {
+    protected val releaseUiBtns: () -> Unit = {
         val count = btnPanel.childCount
         if (count > 0) {
             runOnUiThread {
@@ -85,12 +93,12 @@ abstract class BaseListfilesActivity:AppCompatActivity() {
             }
         }
     }
-    //显示输出信息
-    protected val showDump: (String)->Unit = {
+    //显示输出信息 = appendUiDump
+    /*protected val showDump: (String)->Unit = {
         runOnUiThread {
             appendDump(it)
         }
-    }
+    }*/
     //endregion
 
     //访问指定的View
@@ -128,6 +136,11 @@ abstract class BaseListfilesActivity:AppCompatActivity() {
                 checkBox("Logv") {
                     onCheckedChange { buttonView, isChecked ->
                         isLogv = isChecked
+                    }
+                }
+                checkBox("Break") {
+                    onCheckedChange { buttonView, isChecked ->
+                        isBreak = isChecked
                     }
                 }
                 //endregion

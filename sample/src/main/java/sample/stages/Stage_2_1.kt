@@ -27,7 +27,7 @@ class Stage_2_1:AppCompatActivity(){
     }
     private fun checkStorage():Boolean{
         val inRoot = StorageUtils.inPdfRoot
-        val outRoot = StorageUtils.outPdfRoot
+        //val outRoot = StorageUtils.outPdfRoot
 
         val root = inRoot
         //val root = StorageUtils.pdfRoot
