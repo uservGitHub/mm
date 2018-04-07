@@ -74,7 +74,7 @@ class LogBuilder(val tag:String = "_LogB") {
         if (isFlow) {
             //序号从0开始，默认2位宽度右对齐
             //两个空格[序号] [xxms]信息
-            val flow = "  >>[${System.currentTimeMillis() - tick}ms]>>$flag\n"
+            val flow = "  >>[${(System.currentTimeMillis() - tick).no4()}ms]>>$flag\n"
             sb.append(flow)
             if (isLogv) {
                 Log.v(tag, flow.substring(0, flow.length - 1))
@@ -133,7 +133,7 @@ class LogBuilder(val tag:String = "_LogB") {
     /**
      * --> [数量 | span ms]completed
      */
-    fun preComplete() {
+    fun postComplete() {
         val flowComplete = "> [${nextCount.no2()} | ${System.currentTimeMillis() - tick}ms]completed\n\n"
         sb.append(flowComplete)
         excuteEnd()
@@ -180,6 +180,15 @@ class LogBuilder(val tag:String = "_LogB") {
         return when (this) {
             in 0..9 -> " $this"
         //in 10..99 -> "  $this"
+        //in 100..999 -> " $this"
+            else -> this.toString()
+        }
+    }
+    protected inline fun Long.no4(): String {
+        return when (this) {
+            in 0..9 -> "   $this"
+            in 10..99 -> "  $this"
+            in 100..999 -> " $this"
         //in 100..999 -> " $this"
             else -> this.toString()
         }

@@ -63,6 +63,16 @@ open class AlphaListfilesActivity : BaseListfilesActivity() {
             sg1.shutdownNow()
             log.pilling("(sg1.isShutdown=${sg1.isShutdown})")
         }
+        val disposeAction = {
+            //被取消/中断
+            log.pillingThread("disposed")
+            log.manualEnd()
+        }
+        val cancelAction = {
+            //被取消/中断
+            log.pillingThread("cancelled")
+            log.manualEnd()
+        }
 
         var t1 = 200L
         var t2 = 150L
@@ -85,7 +95,7 @@ open class AlphaListfilesActivity : BaseListfilesActivity() {
                     }
             updateSwitch.invoke()
             log.reset(title)
-            source.subscribe(log::preNext,log::preError,log::preComplete)
+            source.subscribe(log::preNext,log::preError,log::postComplete)
         }
         //map.io
         bindBtnFn(typeA.invoke()) {
@@ -99,7 +109,21 @@ open class AlphaListfilesActivity : BaseListfilesActivity() {
                     .subscribeOn(Schedulers.io())
             updateSwitch.invoke()
             log.reset(title)
-            source.subscribe(log::preNext,log::preError,log::preComplete)
+            source.subscribe(log::preNext,log::preError,log::postComplete)
+        }
+        //map.computation
+        bindBtnFn(typeA.invoke()) {
+            val title = "map(T1=$t1).computation"
+            val source = Observable.range(0, count)
+                    .map {
+                        log.pillingThread("T1")
+                        trySleep(t1)
+                        "T1:$it"
+                    }
+                    .subscribeOn(Schedulers.computation())
+            updateSwitch.invoke()
+            log.reset(title)
+            source.subscribe(log::preNext,log::preError,log::postComplete)
         }
         //map.break
         bindBtnFn(typeA.invoke()){
@@ -110,14 +134,10 @@ open class AlphaListfilesActivity : BaseListfilesActivity() {
                         trySleep(t1)
                         "T1:$it"
                     }
-                    .doOnDispose {
-                        //被取消/中断
-                        log.pillingThread("disposed")
-                        log.manualEnd()
-                    }
+                    .doOnDispose(disposeAction)
             updateSwitch.invoke()
             log.reset(title)
-            source.subscribe(log::preNext,log::preError,log::preComplete,log::preSubscribe)
+            source.subscribe(log::preNext,log::preError,log::postComplete,log::preSubscribe)
             //上面的执行是在主线程中，上面执行完了才能执行下面，是阻塞方式。
             thread(true, true) {
                 trySleep(tBreak)
@@ -134,21 +154,36 @@ open class AlphaListfilesActivity : BaseListfilesActivity() {
                         "T1:$it"
                     }
                     .subscribeOn(Schedulers.io())
-                    .doOnDispose {
-                        //被取消/中断
-                        log.pillingThread("disposed")
-                        log.manualEnd()
-                    }
+                    .doOnDispose(disposeAction)
             updateSwitch.invoke()
             log.reset(title)
-            source.subscribe(log::preNext,log::preError,log::preComplete,log::preSubscribe)
+            source.subscribe(log::preNext,log::preError,log::postComplete,log::preSubscribe)
             //可以被取消，下面和source的执行是同时的
             thread(true, true) {
                 trySleep(tBreak)
                 log.disposer?.dispose()
             }
         }
-
+        //map.computation.break
+        bindBtnFn(typeA.invoke()){
+            val title = "map(T1=$t1).computation.break($tBreak)"
+            val source = Observable.range(0, count)
+                    .map {
+                        log.pillingThread("T1")
+                        trySleep(t1)
+                        "T1:$it"
+                    }
+                    .subscribeOn(Schedulers.computation())
+                    .doOnDispose(disposeAction)
+            updateSwitch.invoke()
+            log.reset(title)
+            source.subscribe(log::preNext,log::preError,log::postComplete,log::preSubscribe)
+            //可以被取消，下面和source的执行是同时的
+            thread(true, true) {
+                trySleep(tBreak)
+                log.disposer?.dispose()
+            }
+        }
         //flatMap.map
         bindBtnFn(typeA.invoke()) {
             val title = "flatMap.map(T1=$t1)"
@@ -163,7 +198,7 @@ open class AlphaListfilesActivity : BaseListfilesActivity() {
                     }
             updateSwitch.invoke()
             log.reset(title)
-            source.subscribe(log::preNext,log::preError,log::preComplete)
+            source.subscribe(log::preNext,log::preError,log::postComplete)
         }
         //flatMap.map.io
         bindBtnFn(typeA.invoke()) {
@@ -180,7 +215,24 @@ open class AlphaListfilesActivity : BaseListfilesActivity() {
                     }
             updateSwitch.invoke()
             log.reset(title)
-            source.subscribe(log::preNext,log::preError,log::preComplete)
+            source.subscribe(log::preNext,log::preError,log::postComplete)
+        }
+        //flatMap.map.computation
+        bindBtnFn(typeA.invoke()) {
+            val title = "flatMap.map(T1=$t1).computation"
+            val source = Observable.range(0, count)
+                    .flatMap {
+                        Observable.just(it)
+                                .map {
+                                    log.pillingThread("T1")
+                                    trySleep(t1)
+                                    "T1:$it"
+                                }
+                                .subscribeOn(Schedulers.computation())
+                    }
+            updateSwitch.invoke()
+            log.reset(title)
+            source.subscribe(log::preNext,log::preError,log::postComplete)
         }
         //flatMap.map.break
         bindBtnFn(typeA.invoke()) {
@@ -195,14 +247,10 @@ open class AlphaListfilesActivity : BaseListfilesActivity() {
                                     "T1:$it"
                                 }
                     }
-                    .doOnDispose {
-                        //被取消/中断
-                        log.pillingThread("disposed")
-                        log.manualEnd()
-                    }
+                    .doOnDispose(disposeAction)
             updateSwitch.invoke()
             log.reset(title)
-            source.subscribe(log::preNext,log::preError,log::preComplete,log::preSubscribe)
+            source.subscribe(log::preNext,log::preError,log::postComplete,log::preSubscribe)
             //上面的执行是在主线程中，上面执行完了才能执行下面，是阻塞方式。
             thread(true, true) {
                 trySleep(tBreak)
@@ -223,14 +271,54 @@ open class AlphaListfilesActivity : BaseListfilesActivity() {
                                 }
                                 .subscribeOn(Schedulers.io())
                     }
-                    .doOnDispose {
-                        //被取消/中断
-                        log.pillingThread("disposed")
-                        log.manualEnd()
-                    }
+                    .doOnDispose(disposeAction)
             updateSwitch.invoke()
             log.reset(title)
-            source.subscribe(log::preNext,log::preError,log::preComplete,log::preSubscribe)
+            source.subscribe(log::preNext,log::preError,log::postComplete,log::preSubscribe)
+            thread(true, true) {
+                trySleep(tBreak)
+                log.disposer?.dispose()
+            }
+        }
+        //flatMap.map.computation.break
+        bindBtnFn(typeA.invoke()) {
+            val title = "flatMap.map(T1=$t1).computation.break($tBreak)"
+            val source = Observable.range(0, count)
+                    .flatMap {
+                        Observable.just(it)
+                                .map {
+                                    log.pillingThread("T1")
+                                    trySleep(t1)
+                                    "T1:$it"
+                                }
+                                .subscribeOn(Schedulers.computation())
+                    }
+                    .doOnDispose(disposeAction)
+            updateSwitch.invoke()
+            log.reset(title)
+            source.subscribe(log::preNext,log::preError,{shutdownCp3.invoke();log.postComplete()},log::preSubscribe)
+            thread(true, true) {
+                trySleep(tBreak)
+                log.disposer?.dispose()
+            }
+        }
+        //flatMap.map.cp3.break
+        bindBtnFn(typeA.invoke()) {
+            val title = "flatMap.map(T1=$t1).cp3.break($tBreak)"
+            val source = Observable.range(0, count)
+                    .flatMap {
+                        Observable.just(it)
+                                .map {
+                                    log.pillingThread("T1")
+                                    trySleep(t1)
+                                    "T1:$it"
+                                }
+                                .subscribeOn(Schedulers.from(cp3))
+                    }
+                    .doOnDispose(disposeAction)
+            updateSwitch.invoke()
+            log.reset(title)
+            source.subscribe(log::preNext,log::preError,{shutdownCp3.invoke();log.postComplete()},log::preSubscribe)
             thread(true, true) {
                 trySleep(tBreak)
                 log.disposer?.dispose()
@@ -243,7 +331,137 @@ open class AlphaListfilesActivity : BaseListfilesActivity() {
             "B_${++typeInd}"
         }
         //region    B系列
-
+        //map.io map.computation
+        bindBtnFn(typeB.invoke()) {
+            val title = "map(T1=$t1).io map(T2=$t2).computation"
+            val source = Observable.range(0, count)
+                    .map {
+                        log.pillingThread("T1")
+                        trySleep(t1)
+                        "T1:$it"
+                    }
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(Schedulers.computation())
+                    .map {
+                        log.pillingThread("T2")
+                        trySleep(t2)
+                        "T2:$it"
+                    }
+            updateSwitch.invoke()
+            log.reset(title)
+            source.subscribe(log::preNext,log::preError,log::postComplete)
+        }
+        //map.io map.io
+        bindBtnFn(typeB.invoke()) {
+            val title = "map(T1=$t1).io map(T2=$t2).io"
+            val source = Observable.range(0, count)
+                    .map {
+                        log.pillingThread("T1")
+                        trySleep(t1)
+                        "T1:$it"
+                    }
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(Schedulers.io())
+                    .map {
+                        log.pillingThread("T2")
+                        trySleep(t2)
+                        "T2:$it"
+                    }
+            updateSwitch.invoke()
+            log.reset(title)
+            source.subscribe(log::preNext,log::preError,log::postComplete)
+        }
+        //map.computation map.io
+        bindBtnFn(typeB.invoke()) {
+            val title = "map(T1=$t1).computation map(T2=$t2).io"
+            val source = Observable.range(0, count)
+                    .map {
+                        log.pillingThread("T1")
+                        trySleep(t1)
+                        "T1:$it"
+                    }
+                    .subscribeOn(Schedulers.computation())
+                    .observeOn(Schedulers.io())
+                    .map {
+                        log.pillingThread("T2")
+                        trySleep(t2)
+                        "T2:$it"
+                    }
+            updateSwitch.invoke()
+            log.reset(title)
+            source.subscribe(log::preNext,log::preError,log::postComplete)
+        }
+        //map.computation map.computation
+        bindBtnFn(typeB.invoke()) {
+            val title = "map(T1=$t1).computation map(T2=$t2).computation"
+            val source = Observable.range(0, count)
+                    .map {
+                        log.pillingThread("T1")
+                        trySleep(t1)
+                        "T1:$it"
+                    }
+                    .subscribeOn(Schedulers.computation())
+                    .observeOn(Schedulers.computation())
+                    .map {
+                        log.pillingThread("T2")
+                        trySleep(t2)
+                        "T2:$it"
+                    }
+            updateSwitch.invoke()
+            log.reset(title)
+            source.subscribe(log::preNext,log::preError,log::postComplete)
+        }
+        //map.computation map.io
+        bindBtnFn(typeB.invoke()) {
+            val title = "map(T1=$t1).computation map(T2=$t2).io"
+            val source = Observable.range(0, count)
+                    .map {
+                        log.pillingThread("T1")
+                        trySleep(t1)
+                        "T1:$it"
+                    }
+                    .subscribeOn(Schedulers.computation())
+                    .observeOn(Schedulers.io())
+                    .map {
+                        log.pillingThread("T2")
+                        trySleep(t2)
+                        "T2:$it"
+                    }
+                    .doOnDispose(disposeAction)
+            updateSwitch.invoke()
+            log.reset(title)
+            source.subscribe(log::preNext,log::preError,log::postComplete,log::preSubscribe)
+            thread(true, true) {
+                trySleep(tBreak)
+                log.disposer?.dispose()
+            }
+        }
+        //map.computation map.io
+        bindBtnFn(typeB.invoke()) {
+            val tBreak = 2*(t1+t2)+25
+            val title = "map(T1=$t1).computation map(T2=$t2).io.break($tBreak)"
+            val source = Observable.range(0, count)
+                    .map {
+                        log.pillingThread("T1")
+                        trySleep(t1)
+                        "T1:$it"
+                    }
+                    .subscribeOn(Schedulers.computation())
+                    .observeOn(Schedulers.io())
+                    .map {
+                        log.pillingThread("T2")
+                        trySleep(t2)
+                        "T2:$it"
+                    }
+                    .doOnDispose(disposeAction)
+            updateSwitch.invoke()
+            log.reset(title)
+            source.subscribe(log::preNext,log::preError,log::postComplete,log::preSubscribe)
+            thread(true, true) {
+                trySleep(tBreak)
+                log.disposer?.dispose()
+            }
+        }
         //endregion
 
 
@@ -265,15 +483,11 @@ open class AlphaListfilesActivity : BaseListfilesActivity() {
                         trySleep(t2)
                         "T2:$it"
                     }   //这一段跟着T1_i执行，直到完毕，起始是T1_0ms
-                    .doOnDispose {
-                        //被取消/中断
-                        log.pillingThread("disposed")
-                        log.manualEnd()
-                    }
+                    .doOnDispose(disposeAction)
 
             updateSwitch.invoke()
             log.reset(title, shutdownCp3)
-            source.subscribe(log::preNext, log::preError, log::preComplete, log::preSubscribe)
+            source.subscribe(log::preNext, log::preError, log::postComplete, log::preSubscribe)
             thread(true, true) {
                 trySleep(tBreak)
                 log.disposer?.dispose()

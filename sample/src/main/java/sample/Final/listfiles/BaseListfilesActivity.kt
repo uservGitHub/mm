@@ -68,8 +68,8 @@ abstract class BaseListfilesActivity:AppCompatActivity() {
         private set
     protected var isFlow = false
         private set
-    protected var isBreak = false
-        private set
+    /*protected var isBreak = false
+        private set*/
     //endregion
 
     //region    UI控制
@@ -146,11 +146,11 @@ abstract class BaseListfilesActivity:AppCompatActivity() {
                             isLogv = isChecked
                         }
                     }
-                    checkBox("Break") {
+                    /*checkBox("Break") {
                         onCheckedChange { buttonView, isChecked ->
                             isBreak = isChecked
                         }
-                    }
+                    }*/
                     //endregion
                 }
                 horizontalScrollView {
