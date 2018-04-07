@@ -81,15 +81,21 @@ abstract class BaseListfilesActivity:AppCompatActivity() {
                 btnPanel.getChildAt(i).isEnabled = false
             }
         }
+        btnList.forEach {
+            it.view.isEnabled = false
+        }
     }
     //释放面板
     protected val releaseUiBtns: () -> Unit = {
-        val count = btnPanel.childCount
-        if (count > 0) {
-            runOnUiThread {
+        runOnUiThread {
+            val count = btnPanel.childCount
+            if (count > 0) {
                 for (i in 0..count - 1) {
                     btnPanel.getChildAt(i).isEnabled = true
                 }
+            }
+            btnList.forEach {
+                it.view.isEnabled = true
             }
         }
     }
@@ -120,45 +126,52 @@ abstract class BaseListfilesActivity:AppCompatActivity() {
 
         verticalLayout {
             orientation = LinearLayout.VERTICAL
-            btnPanel = linearLayout {
+            linearLayout {
                 orientation = LinearLayout.HORIZONTAL
                 backgroundColor = Color.YELLOW
 
-                //region    固定设置
-                button("Clear") {
-                    onClick { clearDump() }
-                }
-                checkBox("Flow") {
-                    onCheckedChange { buttonView, isChecked ->
-                        isFlow = isChecked
+                btnPanel = linearLayout {
+                    orientation = LinearLayout.HORIZONTAL
+                    //region    固定设置
+                    button("Clear") {
+                        onClick { clearDump() }
                     }
-                }
-                checkBox("Logv") {
-                    onCheckedChange { buttonView, isChecked ->
-                        isLogv = isChecked
-                    }
-                }
-                checkBox("Break") {
-                    onCheckedChange { buttonView, isChecked ->
-                        isBreak = isChecked
-                    }
-                }
-                //endregion
-
-                //按照实际功能动态添加
-                btnList.forEach { btn ->
-                    button() {
-                        btn.view = this
-                        text = btn.title
-                        onClick { sender ->
-                            //sender?.isEnabled = false
-                            //锁定全部功能按钮
-                            enterBtns.invoke()
-                            //执行Code
-                            btn.code.invoke()
+                    checkBox("Flow") {
+                        onCheckedChange { buttonView, isChecked ->
+                            isFlow = isChecked
                         }
                     }
+                    checkBox("Logv") {
+                        onCheckedChange { buttonView, isChecked ->
+                            isLogv = isChecked
+                        }
+                    }
+                    checkBox("Break") {
+                        onCheckedChange { buttonView, isChecked ->
+                            isBreak = isChecked
+                        }
+                    }
+                    //endregion
                 }
+                horizontalScrollView {
+                    linearLayout {
+                        orientation = LinearLayout.HORIZONTAL
+                        //按照实际功能动态添加
+                        btnList.forEach { btn ->
+                            button() {
+                                btn.view = this
+                                text = btn.title
+                                onClick { sender ->
+                                    //sender?.isEnabled = false
+                                    //锁定全部功能按钮
+                                    enterBtns.invoke()
+                                    //执行Code
+                                    btn.code.invoke()
+                                }
+                            }
+                        }
+                    }
+                }.lparams(0, wrapContent, 1F)
             }.lparams(matchParent, wrapContent)
             contentPanel = linearLayout {
                 orientation = LinearLayout.VERTICAL
