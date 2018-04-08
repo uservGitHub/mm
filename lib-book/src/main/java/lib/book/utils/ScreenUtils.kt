@@ -1,4 +1,4 @@
-package pdfbook.sample.stages
+package lib.book.utils
 
 import android.app.Activity
 import android.support.v7.app.AppCompatActivity
@@ -7,8 +7,9 @@ import android.view.Window
 import android.view.WindowManager
 
 /**
- * Created by Administrator on 2017/12/31.
+ * Created by work on 2018/4/8.
  */
+
 
 class ScreenUtils{
     companion object {

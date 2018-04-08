@@ -1,19 +1,15 @@
-package sample.Final.listfiles
+package lib.book.alpha
 
-import android.os.ParcelFileDescriptor
-import android.util.Log
-import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
-import sample.Final.LogBuilder
 import java.io.File
 import java.util.concurrent.Executors
 import kotlin.concurrent.thread
 
 /**
- * Created by work on 2018/4/4.
+ * Created by work on 2018/4/8.
  */
-open class AlphaListfilesActivity : BaseListfilesActivity() {
+open class BetaRxActivity : BaseRxActivity() {
     private inline fun trySleep(millis:Long) {
         try {
             Thread.sleep(millis)
@@ -23,7 +19,7 @@ open class AlphaListfilesActivity : BaseListfilesActivity() {
     }
     override fun layoutSetup() {
         //总共有两级目录
-        val root = File(dirRoot)
+        //val root = File(dirRoot)
         //赋值通用退出操作
         val log = LogBuilder().apply {
             //通用操作
@@ -36,7 +32,7 @@ open class AlphaListfilesActivity : BaseListfilesActivity() {
         }
         //更新开关，从UI设置中更新
         val updateSwitch:()->Unit = {
-            log.switch(isFlow, isLogv)
+            log.switch(isFlow, isLogv, isPill)
         }
         //3个核心池线程
         val cp3 = Executors.newScheduledThreadPool(3)
@@ -63,16 +59,8 @@ open class AlphaListfilesActivity : BaseListfilesActivity() {
             sg1.shutdownNow()
             log.pilling("(sg1.isShutdown=${sg1.isShutdown})")
         }
-        val disposeAction = {
-            //被取消/中断
-            log.pillingThread("disposed")
-            log.manualEnd()
-        }
-        val cancelAction = {
-            //被取消/中断
-            log.pillingThread("cancelled")
-            log.manualEnd()
-        }
+        val disposeAction = log::postBreak
+        val cancelAction = log::postBreak
 
         var t1 = 200L
         var t2 = 150L
@@ -315,7 +303,7 @@ open class AlphaListfilesActivity : BaseListfilesActivity() {
                                 }
                                 .subscribeOn(Schedulers.from(cp3))
                     }
-                    .doOnDispose(disposeAction)
+                    .doOnDispose(log::postBreak)
             updateSwitch.invoke()
             log.reset(title)
             source.subscribe(log::preNext,log::preError,{shutdownCp3.invoke();log.postComplete()},log::preSubscribe)

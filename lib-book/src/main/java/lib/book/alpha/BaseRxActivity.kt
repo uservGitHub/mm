@@ -1,5 +1,6 @@
-package sample.Final.listfiles
+package lib.book.alpha
 
+import android.app.Activity
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
@@ -7,23 +8,24 @@ import android.support.v7.app.AppCompatActivity
 import android.text.method.ScrollingMovementMethod
 import android.view.Gravity
 import android.view.View
+import android.view.Window
+import android.view.WindowManager
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import lib.book.utils.ScreenUtils
 import org.jetbrains.anko.*
 import org.jetbrains.anko.custom.onUiThread
 import org.jetbrains.anko.sdk25.coroutines.onCheckedChange
 import org.jetbrains.anko.sdk25.coroutines.onClick
-import pdfbook.sample.stages.ScreenUtils
-import pdfbook.sample.stages.StorageUtils
-import sample.Final.AppTick
-import sample.project.AppConfigure
+
 
 /**
  * Created by work on 2018/4/4.
  */
 
-abstract class BaseListfilesActivity:AppCompatActivity() {
+abstract class BaseRxActivity:AppCompatActivity() {
 
     //region    布局要求
     protected lateinit var btnPanel: LinearLayout
@@ -59,8 +61,8 @@ abstract class BaseListfilesActivity:AppCompatActivity() {
     //endregion
 
     //region    业务要求
-    protected var dirRoot = StorageUtils.inPdfRoot
-        private set
+    /*protected var dirRoot = StorageUtils.inPdfRoot
+        private set*/
     //endregion
 
     //region    控制属性
@@ -68,22 +70,33 @@ abstract class BaseListfilesActivity:AppCompatActivity() {
         private set
     protected var isFlow = false
         private set
-    /*protected var isBreak = false
-        private set*/
+    protected var isPill = false
+        private set
+
+    protected var t1 = 100
+        private set
+    protected var t2 = 100
+        private set
+
     //endregion
 
     //region    UI控制
     //锁定面板
-    protected val enterBtns: () -> Unit = {
+    protected val enterBtns: (Button) -> Unit = { v ->
         val count = btnPanel.childCount
-        if (count>0){
-            for (i in 0..count-1){
+        if (count > 0) {
+            for (i in 0..count - 1) {
                 btnPanel.getChildAt(i).isEnabled = false
             }
         }
         btnList.forEach {
             it.view.isEnabled = false
+            if (it.view.text.last() == '。') {
+                val count = it.view.text.length - 1
+                it.view.text = it.view.text.substring(0, count)
+            }
         }
+        v.text = "${v.text}。"
     }
     //释放面板
     protected val releaseUiBtns: () -> Unit = {
@@ -133,7 +146,7 @@ abstract class BaseListfilesActivity:AppCompatActivity() {
                 btnPanel = linearLayout {
                     orientation = LinearLayout.HORIZONTAL
                     //region    固定设置
-                    button("Clear") {
+                    button("Clr") {
                         onClick { clearDump() }
                     }
                     checkBox("Flow") {
@@ -141,16 +154,16 @@ abstract class BaseListfilesActivity:AppCompatActivity() {
                             isFlow = isChecked
                         }
                     }
-                    checkBox("Logv") {
+                    checkBox("Pill") {
+                        onCheckedChange { buttonView, isChecked ->
+                            isPill = isChecked
+                        }
+                    }
+                    checkBox("Log") {
                         onCheckedChange { buttonView, isChecked ->
                             isLogv = isChecked
                         }
                     }
-                    /*checkBox("Break") {
-                        onCheckedChange { buttonView, isChecked ->
-                            isBreak = isChecked
-                        }
-                    }*/
                     //endregion
                 }
                 horizontalScrollView {
@@ -164,7 +177,7 @@ abstract class BaseListfilesActivity:AppCompatActivity() {
                                 onClick { sender ->
                                     //sender?.isEnabled = false
                                     //锁定全部功能按钮
-                                    enterBtns.invoke()
+                                    enterBtns.invoke(btn.view)
                                     //执行Code
                                     btn.code.invoke()
                                 }
@@ -195,6 +208,6 @@ abstract class BaseListfilesActivity:AppCompatActivity() {
     }
 
     data class BtnItem(val title: String, val code: () -> Unit) {
-        lateinit var view: View
+        lateinit var view: Button
     }
 }

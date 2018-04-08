@@ -1,4 +1,4 @@
-package sample.Final
+package lib.book.alpha
 
 import android.util.Log
 import io.reactivex.disposables.Disposable
@@ -9,6 +9,7 @@ import org.reactivestreams.Subscription
  * 考虑到日志输出会影响执行性能，此类的目的就是搜集日志信息，
  * 进行日志信息的控制。
  * 不加锁，无输出流，无打印的情况下，对程序影响最小
+ * 2018/4/8 新增打桩控制，选中时才记录打桩信息
  */
 
 class LogBuilder(val tag:String = "_LogB") {
@@ -33,6 +34,8 @@ class LogBuilder(val tag:String = "_LogB") {
         private set
     protected var isFlow: Boolean = false
         private set
+    protected var isPill: Boolean = false
+        private set
 
     val dump: String get() = sb.toString()
 
@@ -46,11 +49,15 @@ class LogBuilder(val tag:String = "_LogB") {
 
 
     /**
-     * 开关控制
+     * 开关控制：
+     * pill的处理是单独控制的
+     * logv是依赖flow或pill的
+     * error,complete,break是无条件输出的
      */
-    fun switch(flow: Boolean = false, logv: Boolean = false) {
+    fun switch(flow: Boolean = false, logv: Boolean = false, pill:Boolean = false) {
         isFlow = flow
         isLogv = logv
+        isPill = pill
     }
 
     /**
@@ -71,35 +78,51 @@ class LogBuilder(val tag:String = "_LogB") {
      * 打桩 两个空格>>[span ms]>>桩名称flag
      */
     fun pilling(flag: Any) {
-        if (isFlow) {
+        if (isPill) {
             //序号从0开始，默认2位宽度右对齐
             //两个空格[序号] [xxms]信息
-            val flow = "  >>[${(System.currentTimeMillis() - tick).no4()}ms]>>$flag\n"
+            val flow = textPill(flag)
             sb.append(flow)
             if (isLogv) {
-                Log.v(tag, flow.substring(0, flow.length - 1))
+                Log.v(tag, flow.substring(0, flow.length-1))
             }
         }
     }
 
     /**
-     *  打桩 桩名称:当前线程名,是否守护线程
+     * 被取消或中断，无条件打印
      */
-    fun pillingThread(flag: String = "") {
-        pilling("$flag:${Thread.currentThread().name},${Thread.currentThread().isDaemon}")
+    fun postBreak(){
+        if (true) {
+            //序号从0开始，默认2位宽度右对齐
+            //两个空格[序号] [xxms]信息
+            val flow = textPill("break:(${Thread.currentThread().name},${Thread.currentThread().isDaemon})\n")
+            sb.append(flow)
+            if (isLogv) {
+                Log.v(tag, flow.substring(0, flow.length-1))
+            }
+        }
+        manualEnd()
     }
 
     /**
-     * 两个空格[序号] [span ms]信息
+     *  打桩 桩名称:当前线程名,是否守护线程
+     */
+    fun pillingThread(flag: String) {
+        pilling("$flag:(${Thread.currentThread().name},${Thread.currentThread().isDaemon})")
+    }
+
+    /**
+     * 两个空格[序号] [span ms]信息，即[8位ms]
      */
     fun preNext(t: Any) {
         if (isFlow) {
             //序号从0开始，默认4位宽度右对齐
             //两个空格[序号] [xxms]信息
-            val flow = "  [${nextCount.no2()} | ${System.currentTimeMillis() - tick}ms]$t\n"
+            val flow = "  ${textTick()}$t\n"
             sb.append(flow)
             if (isLogv) {
-                Log.v(tag, flow.substring(0, flow.length - 1))
+                Log.v(tag, flow.substring(0,flow.length-1))
             }
         }
         nextCount++
@@ -110,7 +133,7 @@ class LogBuilder(val tag:String = "_LogB") {
      */
     fun preError(t: Throwable) {
         t.printStackTrace()
-        val flowBreak = "> [${nextCount.no2()} | ${System.currentTimeMillis() - tick}ms]${t.message!!}\n\n"
+        val flowBreak = "> ${textTick()}${t.message!!}\n\n"
         sb.append(flowBreak)
         excuteEnd()
         if (isLogv) {
@@ -122,7 +145,7 @@ class LogBuilder(val tag:String = "_LogB") {
      * 手动结束
      */
     fun manualEnd() {
-        val flowComplete = ">>[${nextCount.no2()} | ${System.currentTimeMillis() - tick}ms]manualEnd\n\n"
+        val flowComplete = ">>${textTick()}manualEnd\n\n"
         sb.append(flowComplete)
         excuteEnd()
         if (isLogv) {
@@ -134,7 +157,7 @@ class LogBuilder(val tag:String = "_LogB") {
      * --> [数量 | span ms]completed
      */
     fun postComplete() {
-        val flowComplete = "> [${nextCount.no2()} | ${System.currentTimeMillis() - tick}ms]completed\n\n"
+        val flowComplete = "> ${textTick()}completed\n\n"
         sb.append(flowComplete)
         excuteEnd()
         if (isLogv) {
@@ -175,6 +198,16 @@ class LogBuilder(val tag:String = "_LogB") {
         }
     }
 
+    private inline fun textTick() = "[${nextCount.no2()} |${(System.currentTimeMillis() - tick).no4()}ms]"
+    private inline fun textPill(flag: Any) = "  >>[${(System.currentTimeMillis() - tick).no4()}ms]>>$flag\n"
+    private inline fun trySleep(millis:Long) {
+        try {
+            Thread.sleep(millis)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     //默认2位宽度右对齐
     protected inline fun Int.no2(): String {
         return when (this) {
@@ -189,7 +222,6 @@ class LogBuilder(val tag:String = "_LogB") {
             in 0..9 -> "   $this"
             in 10..99 -> "  $this"
             in 100..999 -> " $this"
-        //in 100..999 -> " $this"
             else -> this.toString()
         }
     }
