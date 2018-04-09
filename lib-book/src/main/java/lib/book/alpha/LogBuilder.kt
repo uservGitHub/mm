@@ -96,7 +96,7 @@ class LogBuilder(val tag:String = "_LogB") {
         if (true) {
             //序号从0开始，默认2位宽度右对齐
             //两个空格[序号] [xxms]信息
-            val flow = textPill("break:(${Thread.currentThread().name},${Thread.currentThread().isDaemon})\n")
+            val flow = textPill("break:(${Thread.currentThread().name},${Thread.currentThread().isDaemon})")
             sb.append(flow)
             if (isLogv) {
                 Log.v(tag, flow.substring(0, flow.length-1))
