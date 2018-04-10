@@ -11,6 +11,10 @@ import org.jetbrains.anko.sdk25.coroutines.onClick
  * Created by Administrator on 2018/4/9.
  */
 
+/**
+ * 在容器中注入控件
+ * 接口：index,初始默认为0
+ */
 class ValueRange(container: ViewGroup, val list:List<Any>){
     private val btnLeft:Button
     private val btnRight:Button
@@ -54,3 +58,22 @@ class ValueRange(container: ViewGroup, val list:List<Any>){
         updateValue()
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

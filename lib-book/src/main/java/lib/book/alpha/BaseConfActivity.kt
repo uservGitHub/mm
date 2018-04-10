@@ -19,12 +19,14 @@ abstract class BaseConfActivity:AppCompatActivity(){
     protected lateinit var rangePanelA:LinearLayout
     protected lateinit var rangePanelB:LinearLayout
 
-    protected lateinit var numRangeA:ValueRange
-    protected lateinit var numRangeB:ValueRange
-    protected lateinit var btnToast:Button
+    protected lateinit var numRangeA1:ValueRange
+    protected lateinit var numRangeA2:ValueRange
+    protected lateinit var numRangeB:BiValueRange
 
     val num1 = listOf<Int>(1,101,-200)
     val num2 = listOf<Float>(0.33F, -2.4F, .89F)
+    val num3 = listOf<Int>(101,202,303)
+    val str4 = listOf<String>("io方式","cpu方式", "Cache")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ScreenUtils.notitle(this)
@@ -41,7 +43,13 @@ abstract class BaseConfActivity:AppCompatActivity(){
 
                 //endregion
             }.lparams(width= matchParent)
-
+            button("打印上面的值"){
+                onClick {
+                    Toast.makeText(this@BaseConfActivity,
+                            "${num1.get(numRangeA1.index)}\n${num2.get(numRangeA2.index)}",
+                            Toast.LENGTH_LONG).show()
+                }
+            }
             rangePanelB = linearLayout {
                 orientation = LinearLayout.HORIZONTAL
                 backgroundColor = Color.LTGRAY
@@ -50,18 +58,18 @@ abstract class BaseConfActivity:AppCompatActivity(){
 
                 //endregion
             }.lparams(width = matchParent)
-
-            btnToast = button("打印当前值"){
+            button("打印上面的值"){
                 onClick {
-                    Toast.makeText(this@BaseConfActivity, "${num2.get(numRangeB.index)}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@BaseConfActivity,
+                            "${num3.get(numRangeB.index1)}\n${str4.get(numRangeB.index2)}",
+                            Toast.LENGTH_LONG).show()
                 }
             }
+
         }
-
-
-
-        numRangeA = ValueRange(rangePanelA, num1)
-        numRangeB = ValueRange(rangePanelB, num2)
+        numRangeA1 = ValueRange(rangePanelA, num1)
+        numRangeA2 = ValueRange(rangePanelA, num2)
+        numRangeB = BiValueRange(rangePanelB, num3, str4)
     }
 
     override fun onResume() {
