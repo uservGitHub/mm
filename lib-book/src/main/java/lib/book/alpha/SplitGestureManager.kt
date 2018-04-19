@@ -36,7 +36,12 @@ class SplitGestureManager(ctx:Context,val driver:BaseView):
     override fun onDoubleTapEvent(e: MotionEvent?) = false
 
     override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-        info { "(${e.rawX},${e.rawY})" }
+        //info { "(${e.x},${e.y},${driver.view.width})" }
+        if (e.x<driver.view.width/2){
+            driver.leftClick()
+        }else{
+            driver.rightClick()
+        }
         return true
     }
     //endregion
@@ -50,12 +55,12 @@ class SplitGestureManager(ctx:Context,val driver:BaseView):
         retVal = gestureDetector.onTouchEvent(event) || retVal
         if (event.action == MotionEvent.ACTION_UP) {
             //结束
-            info { "End" }
+            //info { "End" }
         }
         return retVal
     }
     override fun onDown(e: MotionEvent): Boolean {
-        info { "Beg" }
+        //info { "Beg" }
         return true
     }
 

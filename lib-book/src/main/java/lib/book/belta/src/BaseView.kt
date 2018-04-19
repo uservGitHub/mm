@@ -15,7 +15,8 @@ interface BaseView {
      * 初始化绑定事件
      */
     fun initEvents(left: () -> Unit, right: () -> Unit, fetch: () -> String)
-
+    fun leftClick()
+    fun rightClick()
     /**
      * 更新视图
      */

@@ -32,16 +32,17 @@ class RingView(ctx:Context):View(ctx),BaseView {
         get() = this
 
     private inline fun refresh(){
-        val text = fetchFun?.invoke() ?: "null"
+        //val text = fetchFun?.invoke() ?: "null"
         //println("refresh:\t$text")
+        invalidate()
     }
-    internal inline fun leftClick(){
+    override fun leftClick(){
         leftClick?.let {
             it.invoke()
             updateView()
         }
     }
-    internal inline fun rightClick(){
+    override fun rightClick(){
         rightClick?.let {
             it.invoke()
             updateView()

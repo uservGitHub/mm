@@ -12,6 +12,8 @@ public fun <T> Iterable<T>.toRing(ctx: Context,tag: String, opView:(View)->Unit)
     }
 }
 
+public fun <T> Iterable<T>.toValue(tag: String) = RingValue.create(toList(), tag)
+
 /**
  * 如从Mutable集合生成，则可变；反之不可变
  */
@@ -20,6 +22,8 @@ public fun <T> List<T>.toRing(ctx: Context,tag: String, opView:(View)->Unit):Rin
         opView(bindUi(RingView(ctx)))
     }
 }
+
+public fun <T> List<T>.toValue(tag: String) = RingValue.create(this, tag)
 
 /*
 val ctx = Context()

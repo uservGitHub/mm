@@ -1,5 +1,6 @@
 package lib.book.utils
 
+import android.app.ActionBar
 import android.content.Context
 import android.view.Gravity
 import android.view.ViewGroup
@@ -33,6 +34,15 @@ class ControlUtils {
                 val width = if (isBi) 2 * tbWidthDip + 4 else tbWidthDip
                 layoutParams = ViewGroup.LayoutParams(dip(width), wrapContent)
             }
+        }
+
+        fun Pair<Int, Int>.toLayoutParams(ctx: Context, width: Int, height: Int) =
+                ViewGroup.LayoutParams(ctx.dip(width), ctx.dip(height))
+
+        fun defaultBtn(ctx: Context) = Button(ctx).apply {
+            minWidth = 0
+            minHeight = 0
+            setPadding(0,0,0,0)
         }
     }
 }
