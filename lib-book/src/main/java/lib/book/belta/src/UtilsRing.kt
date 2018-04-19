@@ -1,5 +1,7 @@
 package lib.book.belta
 
+import android.view.View
+import android.content.Context
 //扩展
 /**
  * 从迭代器生成，不可变
@@ -19,6 +21,7 @@ public fun <T> List<T>.toRing(ctx: Context,tag: String, opView:(View)->Unit):Rin
     }
 }
 
+/*
 val ctx = Context()
 val tag = "Tag"
 fun error(){
@@ -43,4 +46,4 @@ fun main(argv:Array<String>){
     click()
     list.add(0, 33)
     click()
-}
+}*/

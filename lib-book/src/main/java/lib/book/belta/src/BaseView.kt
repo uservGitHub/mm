@@ -1,5 +1,6 @@
 package lib.book.belta
 
+import android.view.View
 interface BaseView {
     /**
      * 是否锁定，是：事件不再起作用

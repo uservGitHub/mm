@@ -1,6 +1,7 @@
 package sample
 
 import lib.book.alpha.AlphaConfActivity
+import lib.book.alpha.AlphaRingConfActivity
 import lib.book.alpha.BetaRxActivity
 
 /**
@@ -8,4 +9,5 @@ import lib.book.alpha.BetaRxActivity
  */
 
 //class MainActivity:BetaRxActivity()
-class MainActivity:AlphaConfActivity()
+//class MainActivity:AlphaConfActivity()
+class MainActivity:AlphaRingConfActivity()
